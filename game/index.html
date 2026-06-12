@@ -536,11 +536,11 @@ function getTotalCPS() {
     let cps = 0;
     BUSINESSES.forEach(b => {
         const bs = state.businesses[b.id];
-        if (bs.owned > 0 && state.managers[b.id]) {
-            const income = getBusinessIncome(b, bs);
-            const time = getBusinessTime(b);
-            cps += income / (time / 1000);
-        }
+        if (!bs || bs.owned <= 0) return;
+        if (!state.managers[b.id]) return;
+        const income = getBusinessIncome(b, bs);
+        const time = getBusinessTime(b);
+        cps += income / (time / 1000);
     });
     return cps;
 }
@@ -748,7 +748,7 @@ function gameTick() {
     // Update businesses
     BUSINESSES.forEach(b => {
         const bs = state.businesses[b.id];
-        if (bs.owned <= 0) return;
+        if (!bs || bs.owned <= 0) return;
 
         const hasManager = state.managers[b.id];
         if (!hasManager) return; // Manual businesses don't auto-produce (click each one)
@@ -781,7 +781,7 @@ function gameTick() {
 function updateProgressBars() {
     BUSINESSES.forEach(b => {
         const bs = state.businesses[b.id];
-        if (bs.owned <= 0) return;
+        if (!bs || bs.owned <= 0) return;
         const time = getBusinessTime(b);
         const pct = (bs.progress / time * 100);
         const bar = document.querySelector(`[data-progress="${b.id}"]`);
@@ -870,7 +870,7 @@ function renderBusinesses() {
     </button>`;
 
     BUSINESSES.forEach((b, i) => {
-        const bs = state.businesses[b.id];
+        const bs = state.businesses[b.id] || { owned: 0, progress: 0 };
         const cost = getBusinessCost(b, bs.owned);
         const canBuy = state.coins >= cost;
         const income = getBusinessIncome(b, bs);
@@ -878,7 +878,8 @@ function renderBusinesses() {
         const hasManager = state.managers[b.id];
         const managerCost = getBusinessCost(b, 0) * 10;
         const progress = bs.owned > 0 ? (bs.progress / time * 100) : 0;
-        const unlocked = i === 0 || state.businesses[BUSINESSES[i-1].id].owned > 0;
+        const prevBs = i > 0 ? (state.businesses[BUSINESSES[i-1].id] || { owned: 0 }) : null;
+        const unlocked = i === 0 || prevBs.owned > 0;
 
         html += `<div class="business-card ${unlocked ? '' : 'locked'}">
             <div class="business-icon">${b.icon}</div>
