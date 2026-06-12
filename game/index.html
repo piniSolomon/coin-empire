@@ -456,6 +456,9 @@ function handleClick(e) {
     state.totalCoins += value;
     state.totalClicks++;
 
+    // Analytics
+    analytics.track('click', { v: value });
+
     // Floating text
     const el = document.createElement('div');
     el.className = 'click-text';
@@ -478,6 +481,7 @@ function buyBusiness(bizId) {
     if (state.coins >= cost) {
         state.coins -= cost;
         bs.owned++;
+        analytics.track('buy', { biz: bizId, count: bs.owned, cost });
         showToast(`Bought ${biz.icon} ${biz.name}! (${bs.owned} owned)`);
         updateUI();
     }
@@ -491,6 +495,7 @@ function buyManager(bizId) {
     if (state.coins >= cost && !state.managers[bizId]) {
         state.coins -= cost;
         state.managers[bizId] = true;
+        analytics.track('manager', { biz: bizId, cost });
         showToast(`Hired manager for ${biz.icon} ${biz.name}!`);
         updateUI();
     }
@@ -503,6 +508,7 @@ function buyUpgrade(upgradeId) {
     if (state.coins >= upgrade.cost && !state.upgrades[upgradeId]) {
         state.coins -= upgrade.cost;
         state.upgrades[upgradeId] = true;
+        analytics.track('upgrade', { id: upgradeId, cost: upgrade.cost });
         showToast(`Purchased ${upgrade.icon} ${upgrade.name}!`);
         updateUI();
     }
@@ -518,6 +524,7 @@ function doPrestige() {
     const applyPrestige = () => {
         state.prestigeLevel++;
         state.prestigeMultiplier = 1 + (state.prestigeLevel * 0.5);
+        analytics.track('prestige', { level: state.prestigeLevel, mult: state.prestigeMultiplier });
 
         // Reset progress
         state.coins = 0;
@@ -582,6 +589,7 @@ function watchRewardAd() {
         state.boostActive = true;
         state.boostEnd = Date.now() + 300000;
         state.adsWatched++;
+        analytics.track('ad_watched', { type: 'reward_simulated' });
         showToast('2x Boost activated for 5 minutes! (simulated ad)');
         updateUI();
     }
@@ -649,6 +657,7 @@ function collectBusiness(bizId) {
         const income = getBusinessIncome(biz, bs);
         state.coins += income;
         state.totalCoins += income;
+        analytics.track('collect', { biz: bizId, income });
 
         const el = document.createElement('div');
         el.className = 'click-text';
@@ -810,6 +819,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 function saveGame() {
     state.lastSave = Date.now();
     localStorage.setItem('coinEmpireSave', JSON.stringify(state));
+    analytics.save();
 }
 
 function loadGame() {
@@ -847,6 +857,74 @@ coinBtn.addEventListener('touchstart', (e) => {
 coinBtn.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') handleClick(e);
 });
+
+// ========== ANALYTICS ==========
+
+const analytics = {
+    _events: JSON.parse(localStorage.getItem('coinEmpireAnalytics') || '[]'),
+    _sessionStart: Date.now(),
+    _sessionId: Math.random().toString(36).slice(2, 10),
+
+    track(event, data = {}) {
+        const entry = {
+            e: event,
+            t: Date.now(),
+            s: this._sessionId,
+            ...data,
+        };
+        this._events.push(entry);
+        // Keep last 1000 events to avoid storage bloat
+        if (this._events.length > 1000) {
+            this._events = this._events.slice(-800);
+        }
+    },
+
+    save() {
+        try {
+            localStorage.setItem('coinEmpireAnalytics', JSON.stringify(this._events));
+        } catch(e) { /* storage full, clear old events */
+            this._events = this._events.slice(-200);
+            localStorage.setItem('coinEmpireAnalytics', JSON.stringify(this._events));
+        }
+    },
+
+    getSummary() {
+        const sessions = {};
+        this._events.forEach(ev => {
+            if (!sessions[ev.s]) sessions[ev.s] = { start: ev.t, end: ev.t, events: 0 };
+            sessions[ev.s].end = Math.max(sessions[ev.s].end, ev.t);
+            sessions[ev.s].events++;
+        });
+        const sessionList = Object.values(sessions);
+        const durations = sessionList.map(s => (s.end - s.start) / 1000);
+        const totalClicks = this._events.filter(e => e.e === 'click').length;
+        const totalBuys = this._events.filter(e => e.e === 'buy').length;
+        const totalCollects = this._events.filter(e => e.e === 'collect').length;
+        const totalPrestiges = this._events.filter(e => e.e === 'prestige').length;
+        const totalAds = this._events.filter(e => e.e === 'ad_watched').length;
+        const totalUpgrades = this._events.filter(e => e.e === 'upgrade').length;
+
+        return {
+            totalSessions: sessionList.length,
+            totalEvents: this._events.length,
+            avgSessionDuration: durations.length ? (durations.reduce((a,b) => a+b, 0) / durations.length).toFixed(0) + 's' : '0s',
+            totalClicks,
+            totalBuys,
+            totalCollects,
+            totalPrestiges,
+            totalAds,
+            totalUpgrades,
+            lastEvent: this._events.length ? new Date(this._events[this._events.length-1].t).toISOString() : 'never',
+        };
+    },
+
+    export() {
+        return JSON.stringify(this._events, null, 2);
+    }
+};
+
+// Track session start
+analytics.track('session_start');
 
 // ========== INIT ==========
 
