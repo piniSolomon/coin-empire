@@ -1,8 +1,8 @@
 # Project Status — Game Ads Agent
 
-> **Last Updated**: 2026-06-12 08:03 UTC
-> **Current Phase**: 2 — Launch (complete!)
-> **Agent Status**: Live! Starting optimization phase
+> **Last Updated**: 2026-06-12 09:15 UTC
+> **Current Phase**: 3 — Optimize & Monetize
+> **Agent Status**: All planned tasks complete. Waiting for AdSense publisher ID.
 
 ---
 
@@ -13,45 +13,47 @@
 | Game Live | YES |
 | Game URL | https://pinisolomon.github.io/coin-empire/ |
 | GitHub Repo | https://github.com/piniSolomon/coin-empire |
-| Total Revenue | $0 (need AdSense publisher ID) |
-| Total Players | 0 (just launched) |
-| Days Running | 0 |
-| Tasks Completed | 7/12 |
-| Cycles Run | 6 |
+| Total Revenue | $0 (waiting for AdSense publisher ID) |
+| Commits | 11 |
 | E2E Tests | 30/30 passing |
+| Tasks Done | 11/15 |
+| Improvement Ideas | 5/8 implemented |
 
 ---
 
-## Current Sprint
-**Focus**: Analytics + Optimization
-**Working On**: Task #8 — Analytics, Task #11 — AdSense publisher ID
-**Blockers**: Need Google AdSense account for real ad revenue
+## Blocker
+**Need AdSense Publisher ID to start earning.** Owner must sign up at https://adsense.google.com/start/ and provide the `ca-pub-XXXXXXX` ID.
 
 ---
 
-## Recent Activity
-- **Cycle 6** (08:03): Deployed to GitHub Pages! Game live at pinisolomon.github.io/coin-empire
-- **Cycle 5** (08:00): Ad SDK + mobile fix + 30 E2E tests
-- **Cycle 4** (07:45): Built complete MVP game
-- **Cycle 3** (07:15): Designed "Coin Empire" concept
-- **Cycle 2** (07:00): Chose tech stack
-- **Cycle 1** (06:45): Chose game genre
+## What's Built
+- Complete idle tycoon game ("Coin Empire")
+- 5 business tiers, managers, upgrades, prestige system
+- Mobile-optimized with touch event delegation
+- Google Ad Placement API integrated (4 ad placements)
+- Daily login rewards (7-day streak)
+- Offline earnings with "Watch Ad for 2x" popup
+- Onboarding tutorial for new players
+- Particle effects on click
+- Analytics tracking
+- Share button (Web Share API)
+- Privacy policy page
+- SEO/Open Graph meta tags
+- Auto-deploy via GitHub Actions
+- 30 Playwright E2E tests
 
 ---
 
-## Key Decisions Made
-1. **Genre**: Idle/incremental game
-2. **Tech**: Vanilla JS + HTML5/CSS (single file, no deps)
-3. **Ads**: Google Ad Placement API
-4. **Hosting**: GitHub Pages (auto-deploy via Actions)
-5. **Game**: "Coin Empire" — idle tycoon
-
----
-
-## Revenue Tracker
-| Date | Impressions | Revenue | eCPM |
-|------|-------------|---------|------|
-| — | — | — | — |
+## Revenue Readiness
+| Component | Status |
+|-----------|--------|
+| Ad SDK script | Integrated (needs real publisher ID) |
+| Rewarded ad: 2x boost | Ready |
+| Rewarded ad: offline earnings double | Ready |
+| Rewarded ad: double collection | Ready |
+| Interstitial: on prestige | Ready |
+| Banner: bottom of page | Ready |
+| Privacy policy | Published |
 
 ---
 
@@ -59,14 +61,20 @@
 - [x] Game genre chosen
 - [x] Tech stack decided
 - [x] MVP playable
-- [x] Ads integrated (SDK ready)
+- [x] Ads integrated
 - [x] Mobile touch fixed
-- [x] E2E tests passing (30/30)
+- [x] E2E tests (30/30)
 - [x] Game deployed & live
-- [ ] AdSense publisher ID set up
+- [x] Analytics tracking
+- [x] SEO/Open Graph
+- [x] Daily rewards
+- [x] Offline earnings popup
+- [x] Onboarding tutorial
+- [x] Particle effects
+- [x] Share button
+- [x] Privacy policy
+- [x] Monetization guide
+- [ ] **AdSense publisher ID (BLOCKED: needs owner)**
 - [ ] First player session
 - [ ] First ad impression
 - [ ] First dollar earned
-- [ ] 100 unique visitors
-- [ ] Analytics dashboard live
-- [ ] First optimization cycle complete

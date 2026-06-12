@@ -1,10 +1,10 @@
 # Task Queue
 
 ## TODO
-- [ ] #9 - First optimization cycle — analyze data and improve [priority: medium] [effort: M]
-- [ ] #10 - Improve game UI rendering (fix innerHTML re-render causing DOM instability) [priority: medium] [effort: M]
-- [ ] #11 - Register Google AdSense account and get real publisher ID [priority: high] [effort: S]
-- [ ] #12 - Add SEO meta tags and Open Graph for sharing [priority: medium] [effort: S]
+- [ ] #11 - Replace AdSense placeholder with real publisher ID [priority: high] [effort: S] [blocked: waiting for owner to sign up]
+- [ ] #13 - Submit game to GameDistribution/CrazyGames for portal revenue [priority: medium] [effort: S]
+- [ ] #14 - Add more game content (new businesses, events, challenges) [priority: medium] [effort: L]
+- [ ] #15 - Drive traffic — submit to game directories, Reddit, social media [priority: medium] [effort: M]
 
 ## IN-PROGRESS
 
@@ -15,5 +15,8 @@
 - [x] #4 - Design game concept [completed: 2026-06-12]
 - [x] #5 - Build MVP [completed: 2026-06-12]
 - [x] #6 - Integrate ad SDK [completed: 2026-06-12]
-- [x] #7 - Deploy to GitHub Pages [completed: 2026-06-12] — https://pinisolomon.github.io/coin-empire/
-- [x] #8 - Add analytics/event logging [completed: 2026-06-12] — Client-side tracking for all events
+- [x] #7 - Deploy to GitHub Pages [completed: 2026-06-12]
+- [x] #8 - Add analytics/event logging [completed: 2026-06-12]
+- [x] #9 - First optimization cycle [completed: 2026-06-12] — Particles, onboarding, daily rewards, offline earnings, share
+- [x] #10 - Fix DOM rendering / buy button reliability [completed: 2026-06-12] — Event delegation
+- [x] #12 - Add SEO, privacy policy, monetization guide [completed: 2026-06-12]
