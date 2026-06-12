@@ -383,7 +383,7 @@
 <div class="game-container">
     <!-- Header -->
     <div class="header">
-        <h1>Coin Empire</h1>
+        <h1>Coin Empire <span id="sound-toggle" data-action="toggle-sound" style="cursor:pointer;font-size:0.6em;vertical-align:middle">🔊</span></h1>
         <div class="coins-display" id="coins-display">0</div>
         <div class="coins-per-sec"><span id="cps-display">0</span> coins/sec</div>
     </div>
@@ -555,6 +555,51 @@ function getPrestigeCoins() {
     return Math.floor(Math.pow(state.totalCoins / 1000000, 0.5));
 }
 
+// ========== SOUND SYSTEM ==========
+
+let audioCtx = null;
+let soundEnabled = localStorage.getItem('coinEmpireSound') !== 'off';
+
+function getAudioCtx() {
+    if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch(e) { return null; }
+    }
+    return audioCtx;
+}
+
+function playSound(freq, duration, type) {
+    if (!soundEnabled) return;
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+}
+
+function playBuySound() {
+    if (!soundEnabled) return;
+    playSound(523, 0.08, 'sine');
+    setTimeout(() => playSound(659, 0.08, 'sine'), 80);
+    setTimeout(() => playSound(784, 0.12, 'sine'), 160);
+}
+
+function playPrestigeSound() {
+    if (!soundEnabled) return;
+    [523, 659, 784, 1047].forEach((f, i) => {
+        setTimeout(() => playSound(f, 0.15, 'sine'), i * 120);
+    });
+}
+
 // ========== CLICK HANDLER ==========
 
 function handleClick(e) {
@@ -565,6 +610,9 @@ function handleClick(e) {
 
     // Haptic feedback on mobile
     if (navigator.vibrate) navigator.vibrate(15);
+
+    // Sound
+    playSound(800 + Math.random() * 400, 0.05, 'sine');
 
     // Analytics
     analytics.track('click', { v: value });
@@ -609,6 +657,7 @@ function buyBusiness(bizId) {
         state.coins -= cost;
         bs.owned++;
         if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
+        playBuySound();
         analytics.track('buy', { biz: bizId, count: bs.owned, cost });
         showToast(`Bought ${biz.icon} ${biz.name}! (${bs.owned} owned)`);
         updateUI();
@@ -653,6 +702,7 @@ function doPrestige() {
         state.prestigeLevel++;
         state.prestigeMultiplier = 1 + (state.prestigeLevel * 0.5);
         if (navigator.vibrate) navigator.vibrate([50, 50, 50, 50, 100]);
+        playPrestigeSound();
         analytics.track('prestige', { level: state.prestigeLevel, mult: state.prestigeMultiplier });
 
         // Reset progress
@@ -1046,6 +1096,12 @@ function handleGameAction(e) {
         case 'prestige': doPrestige(); break;
         case 'reward-ad': watchRewardAd(); break;
         case 'share': shareGame(); break;
+        case 'toggle-sound':
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('coinEmpireSound', soundEnabled ? 'on' : 'off');
+            document.getElementById('sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) playSound(523, 0.1, 'sine');
+            break;
     }
 }
 
@@ -1247,6 +1303,9 @@ function checkOfflineEarnings() {
 
 loadGame();
 updateUI();
+
+// Set sound icon
+document.getElementById('sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
 
 // Show offline earnings then daily reward (with slight delays so they don't stack)
 setTimeout(() => checkOfflineEarnings(), 300);
