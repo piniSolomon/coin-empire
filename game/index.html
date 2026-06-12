@@ -423,13 +423,13 @@
     <!-- Ad slot placeholder -->
     <div class="ad-slot" id="ad-banner">Ad Space</div>
     <div style="text-align:center;padding:5px;font-size:0.65em;color:#555">
-        <a href="privacy.html" style="color:#666;text-decoration:none">Privacy Policy</a> · v1.1.0
+        <a href="privacy.html" style="color:#666;text-decoration:none">Privacy Policy</a> · v1.2.0
     </div>
 </div>
 
 <script>
 // ========== GAME DATA ==========
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const BUSINESSES = [
     { id: 'lemonade',   name: 'Lemonade Stand', icon: '🍋', baseCost: 10,      baseIncome: 1,       costMult: 1.15, time: 1000 },
     { id: 'coffee',     name: 'Coffee Shop',     icon: '☕',       baseCost: 100,     baseIncome: 5,       costMult: 1.15, time: 2000 },
@@ -486,6 +486,46 @@ let state = {
 BUSINESSES.forEach(b => {
     state.businesses[b.id] = { owned: 0, progress: 0 };
 });
+
+// ========== MILESTONES ==========
+
+const MILESTONES = [
+    { id: 'm1', check: () => state.totalClicks >= 100, text: '100 Clicks!', reward: 50 },
+    { id: 'm2', check: () => state.totalClicks >= 1000, text: '1,000 Clicks!', reward: 500 },
+    { id: 'm3', check: () => Object.values(state.businesses).reduce((a,b)=>a+b.owned,0) >= 5, text: '5 Businesses!', reward: 200 },
+    { id: 'm4', check: () => Object.values(state.businesses).reduce((a,b)=>a+b.owned,0) >= 20, text: '20 Businesses!', reward: 2000 },
+    { id: 'm5', check: () => Object.values(state.managers).filter(Boolean).length >= 3, text: '3 Managers!', reward: 1000 },
+    { id: 'm6', check: () => state.prestigeLevel >= 1, text: 'First Prestige!', reward: 0 },
+    { id: 'm7', check: () => state.totalCoins >= 1000000, text: 'Millionaire!', reward: 10000 },
+    { id: 'm8', check: () => state.totalCoins >= 1000000000, text: 'Billionaire!', reward: 100000 },
+    { id: 'm9', check: () => state.dailyStreak >= 3, text: '3-Day Streak!', reward: 500 },
+    { id: 'm10', check: () => state.adsWatched >= 5, text: 'Ad Supporter!', reward: 1000 },
+];
+
+let milestonesClaimed = JSON.parse(localStorage.getItem('coinEmpireMilestones') || '{}');
+
+function checkMilestones() {
+    MILESTONES.forEach(m => {
+        if (milestonesClaimed[m.id]) return;
+        try { if (!m.check()) return; } catch(e) { return; }
+        milestonesClaimed[m.id] = true;
+        localStorage.setItem('coinEmpireMilestones', JSON.stringify(milestonesClaimed));
+        analytics.track('milestone', { id: m.id });
+        if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+        playBuySound();
+        const rewardText = m.reward > 0 ? `<div class="modal-reward">+${formatNumber(m.reward)} coins</div>` : '';
+        showModal('🏆 Achievement!',
+            `<div style="font-size:1.3em;margin:10px 0">${m.text}</div>${rewardText}`,
+            [{ text: 'Awesome!', action: () => {
+                if (m.reward > 0) { state.coins += m.reward; state.totalCoins += m.reward; }
+                updateUI();
+            }}]
+        );
+    });
+}
+
+// Check milestones every 2 seconds
+setInterval(checkMilestones, 2000);
 
 // ========== CORE FUNCTIONS ==========
 
