@@ -397,6 +397,7 @@
         <div class="coin-button" id="coin-button" role="button" tabindex="0">
             <span>&#x1fa99;</span>
         </div>
+        <div style="font-size:0.7em;color:#aaa;margin-top:5px" id="click-power-display"></div>
     </div>
 
     <!-- Tabs -->
@@ -422,13 +423,13 @@
     <!-- Ad slot placeholder -->
     <div class="ad-slot" id="ad-banner">Ad Space</div>
     <div style="text-align:center;padding:5px;font-size:0.65em;color:#555">
-        <a href="privacy.html" style="color:#666;text-decoration:none">Privacy Policy</a> · v1.0.0
+        <a href="privacy.html" style="color:#666;text-decoration:none">Privacy Policy</a> · v1.1.0
     </div>
 </div>
 
 <script>
 // ========== GAME DATA ==========
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const BUSINESSES = [
     { id: 'lemonade',   name: 'Lemonade Stand', icon: '🍋', baseCost: 10,      baseIncome: 1,       costMult: 1.15, time: 1000 },
     { id: 'coffee',     name: 'Coffee Shop',     icon: '☕',       baseCost: 100,     baseIncome: 5,       costMult: 1.15, time: 2000 },
@@ -827,6 +828,8 @@ function gameTick() {
     // Only update header numbers on tick, not full panels
     document.getElementById('coins-display').textContent = formatNumber(state.coins);
     document.getElementById('cps-display').textContent = formatNumber(getTotalCPS());
+    const cpd = document.getElementById('click-power-display');
+    if (cpd) cpd.textContent = 'tap: +' + formatNumber(getClickValue());
     // Update progress bars without full re-render
     updateProgressBars();
 }
