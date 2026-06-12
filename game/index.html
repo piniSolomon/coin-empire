@@ -424,6 +424,9 @@
 
     <!-- Ad slot placeholder -->
     <div class="ad-slot" id="ad-banner">Ad Space</div>
+    <div style="text-align:center;padding:5px;font-size:0.65em;color:#555">
+        <a href="privacy.html" style="color:#666;text-decoration:none">Privacy Policy</a>
+    </div>
 </div>
 
 <script>
@@ -959,6 +962,9 @@ function renderStats() {
         <div class="stat-row"><span class="stat-label">Upgrades Bought</span><span class="stat-value">${Object.values(state.upgrades).filter(Boolean).length}</span></div>
         <div class="stat-row"><span class="stat-label">Play Time</span><span class="stat-value">${playMins} min</span></div>
         <div class="stat-row"><span class="stat-label">2x Boost</span><span class="stat-value">${state.boostActive && Date.now() < state.boostEnd ? 'Active' : 'Inactive'}</span></div>
+        <button class="reward-btn" data-action="share" style="margin-top:15px;border-style:solid;border-color:rgba(147,51,234,0.4);background:rgba(147,51,234,0.1);color:#a78bfa">
+            📤 Share Your Empire
+        </button>
     `;
 }
 
@@ -1025,12 +1031,38 @@ function handleGameAction(e) {
         case 'upgrade': buyUpgrade(id); break;
         case 'prestige': doPrestige(); break;
         case 'reward-ad': watchRewardAd(); break;
+        case 'share': shareGame(); break;
     }
 }
 
 // Attach to the game container for delegation
 document.querySelector('.game-container').addEventListener('click', handleGameAction);
 document.querySelector('.game-container').addEventListener('touchend', handleGameAction, { passive: false });
+
+// ========== SHARE ==========
+
+function shareGame() {
+    const totalBiz = Object.values(state.businesses).reduce((a,b) => a + b.owned, 0);
+    const text = `🪙 My Coin Empire: ${formatNumber(state.totalCoins)} coins earned, ${totalBiz} businesses, prestige level ${state.prestigeLevel}! Can you beat me? 🏆`;
+    const url = 'https://pinisolomon.github.io/coin-empire/';
+
+    analytics.track('share');
+
+    if (navigator.share) {
+        navigator.share({ title: 'Coin Empire', text, url }).catch(() => {});
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(text + '\n' + url).then(() => {
+            showToast('Copied to clipboard! Share it with friends!');
+        }).catch(() => {
+            // Final fallback: show in modal
+            showModal('📤 Share Your Empire',
+                `<div style="background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;font-size:0.8em;text-align:left;word-break:break-word">${text}<br><br>${url}</div>`,
+                [{ text: 'Close' }]
+            );
+        });
+    }
+}
 
 // ========== ANALYTICS ==========
 
