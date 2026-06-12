@@ -437,6 +437,9 @@ const BUSINESSES = [
     { id: 'restaurant', name: 'Restaurant',       icon: '🍽️', baseCost: 1000,    baseIncome: 25,      costMult: 1.15, time: 4000 },
     { id: 'techco',     name: 'Tech Startup',     icon: '💻', baseCost: 12000,   baseIncome: 120,     costMult: 1.15, time: 8000 },
     { id: 'spacecorp',  name: 'Space Corp',       icon: '🚀', baseCost: 150000,  baseIncome: 600,     costMult: 1.15, time: 15000 },
+    { id: 'bank',       name: 'Mega Bank',         icon: '🏦', baseCost: 2000000, baseIncome: 3000,    costMult: 1.15, time: 20000 },
+    { id: 'media',      name: 'Media Empire',      icon: '📺', baseCost: 30000000,baseIncome: 15000,   costMult: 1.15, time: 30000 },
+    { id: 'galaxy',     name: 'Galaxy Inc',        icon: '🌌', baseCost: 500000000,baseIncome: 80000,  costMult: 1.15, time: 45000 },
 ];
 
 const UPGRADES = [
@@ -449,6 +452,11 @@ const UPGRADES = [
     { id: 'biz5',      name: 'Warp Drive',          icon: '👾', desc: '2x Space Corp income',   cost: 5000000, type: 'business', target: 'spacecorp', mult: 2 },
     { id: 'speed1',    name: 'Efficiency Boost',    icon: '⚡',       desc: 'All businesses 20% faster', cost: 10000, type: 'speed', mult: 0.8 },
     { id: 'speed2',    name: 'Quantum Efficiency',  icon: '🔬', desc: 'All businesses 30% faster', cost: 200000, type: 'speed', mult: 0.7 },
+    { id: 'click3',    name: 'Diamond Hands',       icon: '💎', desc: '5x click power',          cost: 100000, type: 'click', mult: 5 },
+    { id: 'biz6',      name: 'Vault Storage',       icon: '🏦', desc: '2x Mega Bank income',     cost: 10000000, type: 'business', target: 'bank', mult: 2 },
+    { id: 'biz7',      name: 'Viral Content',       icon: '📺', desc: '2x Media Empire income',  cost: 100000000, type: 'business', target: 'media', mult: 2 },
+    { id: 'biz8',      name: 'Dark Matter Engine',  icon: '🌌', desc: '2x Galaxy Inc income',    cost: 2000000000, type: 'business', target: 'galaxy', mult: 2 },
+    { id: 'speed3',    name: 'Time Warp',           icon: '⏰', desc: 'All businesses 50% faster', cost: 5000000, type: 'speed', mult: 0.5 },
 ];
 
 // ========== GAME STATE ==========

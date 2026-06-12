@@ -187,7 +187,7 @@ test('manager produces income automatically', async ({ page }) => {
 test('upgrades tab shows all upgrades', async ({ page }) => {
     await page.locator('.tab:has-text("Upgrades")').click();
     const upgradeCards = await page.locator('.upgrade-card').count();
-    expect(upgradeCards).toBe(9);
+    expect(upgradeCards).toBe(14);
 });
 
 test('can buy click upgrade', async ({ page }) => {
