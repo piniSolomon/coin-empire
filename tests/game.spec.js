@@ -4,9 +4,14 @@ const { test, expect } = require('@playwright/test');
 // Clear localStorage before each test for clean state
 test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+        localStorage.clear();
+        localStorage.setItem('coinEmpireOnboarding', '99'); // Skip onboarding in tests
+    });
     await page.reload();
     await page.waitForSelector('#coin-button');
+    // Wait for first game tick to render panels
+    await page.waitForTimeout(200);
 });
 
 // ========== PAGE LOAD ==========
@@ -340,7 +345,10 @@ test('coin button responds to touch on mobile viewport', async ({ browser }) => 
     });
     const page = await context.newPage();
     await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+        localStorage.clear();
+        localStorage.setItem('coinEmpireOnboarding', '99');
+    });
     await page.reload();
     await page.waitForSelector('#coin-button');
 

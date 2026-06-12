@@ -1,8 +1,8 @@
 # Project Status — Game Ads Agent
 
-> **Last Updated**: Not yet
-> **Current Phase**: 1 — Foundation
-> **Agent Status**: Setting up
+> **Last Updated**: 2026-06-12 08:03 UTC
+> **Current Phase**: 2 — Launch (complete!)
+> **Agent Status**: Live! Starting optimization phase
 
 ---
 
@@ -10,30 +10,41 @@
 
 | Metric | Value |
 |--------|-------|
-| Game Live | No |
-| Game URL | — |
-| Total Revenue | $0 |
-| Total Players | 0 |
+| Game Live | YES |
+| Game URL | https://pinisolomon.github.io/coin-empire/ |
+| GitHub Repo | https://github.com/piniSolomon/coin-empire |
+| Total Revenue | $0 (need AdSense publisher ID) |
+| Total Players | 0 (just launched) |
 | Days Running | 0 |
-| Tasks Completed | 0/9 |
-| Cycles Run | 0 |
+| Tasks Completed | 7/12 |
+| Cycles Run | 6 |
+| E2E Tests | 30/30 passing |
 
 ---
 
 ## Current Sprint
-**Focus**: Research & Planning
-**Working On**: —
-**Blockers**: None
+**Focus**: Analytics + Optimization
+**Working On**: Task #8 — Analytics, Task #11 — AdSense publisher ID
+**Blockers**: Need Google AdSense account for real ad revenue
 
 ---
 
 ## Recent Activity
-*No activity yet.*
+- **Cycle 6** (08:03): Deployed to GitHub Pages! Game live at pinisolomon.github.io/coin-empire
+- **Cycle 5** (08:00): Ad SDK + mobile fix + 30 E2E tests
+- **Cycle 4** (07:45): Built complete MVP game
+- **Cycle 3** (07:15): Designed "Coin Empire" concept
+- **Cycle 2** (07:00): Chose tech stack
+- **Cycle 1** (06:45): Chose game genre
 
 ---
 
 ## Key Decisions Made
-*None yet.*
+1. **Genre**: Idle/incremental game
+2. **Tech**: Vanilla JS + HTML5/CSS (single file, no deps)
+3. **Ads**: Google Ad Placement API
+4. **Hosting**: GitHub Pages (auto-deploy via Actions)
+5. **Game**: "Coin Empire" — idle tycoon
 
 ---
 
@@ -45,18 +56,17 @@
 ---
 
 ## Milestones
-- [ ] Game genre chosen
-- [ ] Tech stack decided
-- [ ] MVP playable
-- [ ] Ads integrated
-- [ ] Game deployed & live
+- [x] Game genre chosen
+- [x] Tech stack decided
+- [x] MVP playable
+- [x] Ads integrated (SDK ready)
+- [x] Mobile touch fixed
+- [x] E2E tests passing (30/30)
+- [x] Game deployed & live
+- [ ] AdSense publisher ID set up
 - [ ] First player session
 - [ ] First ad impression
 - [ ] First dollar earned
 - [ ] 100 unique visitors
+- [ ] Analytics dashboard live
 - [ ] First optimization cycle complete
-
----
-
-## Notes
-*The agent updates this file every cycle. Check here for a quick overview of where things stand.*
