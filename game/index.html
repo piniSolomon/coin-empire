@@ -570,6 +570,9 @@ function handleClick(e) {
     state.totalCoins += value;
     state.totalClicks++;
 
+    // Haptic feedback on mobile
+    if (navigator.vibrate) navigator.vibrate(15);
+
     // Analytics
     analytics.track('click', { v: value });
 
@@ -612,6 +615,7 @@ function buyBusiness(bizId) {
     if (state.coins >= cost) {
         state.coins -= cost;
         bs.owned++;
+        if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
         analytics.track('buy', { biz: bizId, count: bs.owned, cost });
         showToast(`Bought ${biz.icon} ${biz.name}! (${bs.owned} owned)`);
         updateUI();
@@ -655,6 +659,7 @@ function doPrestige() {
     const applyPrestige = () => {
         state.prestigeLevel++;
         state.prestigeMultiplier = 1 + (state.prestigeLevel * 0.5);
+        if (navigator.vibrate) navigator.vibrate([50, 50, 50, 50, 100]);
         analytics.track('prestige', { level: state.prestigeLevel, mult: state.prestigeMultiplier });
 
         // Reset progress
