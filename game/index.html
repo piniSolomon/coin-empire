@@ -852,7 +852,7 @@ function renderBusinesses() {
     // Reward ad button
     const boostActive = state.boostActive && Date.now() < state.boostEnd;
     const boostRemaining = boostActive ? Math.ceil((state.boostEnd - Date.now()) / 1000) : 0;
-    html += `<button class="reward-btn" onclick="watchRewardAd()" ${boostActive ? 'disabled' : ''}>
+    html += `<button class="reward-btn" data-action="reward-ad" ${boostActive ? 'disabled' : ''}>
         ${boostActive
             ? `✨ 2x Boost Active (${Math.floor(boostRemaining/60)}:${String(boostRemaining%60).padStart(2,'0')} left)`
             : '🎥 Watch Ad for 2x Boost (5 min)'}
@@ -878,13 +878,13 @@ function renderBusinesses() {
                 </div>
                 <div class="business-owned">
                     ${bs.owned > 0 ? `Owned: ${bs.owned}` : ''}
-                    ${hasManager ? ' 👔 Manager' : (bs.owned > 0 ? ` | <a href="#" onclick="buyManager('${b.id}');return false" style="color:#a78bfa;text-decoration:none">👔 Hire (${formatNumber(managerCost)})</a>` : '')}
+                    ${hasManager ? ' 👔 Manager' : (bs.owned > 0 ? ` | <a href="#" data-action="manager" data-id="${b.id}" style="color:#a78bfa;text-decoration:none">👔 Hire (${formatNumber(managerCost)})</a>` : '')}
                 </div>
                 ${bs.owned > 0 ? `<div class="progress-bar"><div class="progress-fill" data-progress="${b.id}" style="width:${progress}%"></div></div>` : ''}
             </div>
             <div>
-                ${bs.owned > 0 && !hasManager ? `<button class="buy-btn" style="margin-bottom:5px;background:linear-gradient(135deg,#4caf50,#2e7d32)" onclick="collectBusiness('${b.id}')">Collect</button><br>` : ''}
-                <button class="buy-btn" onclick="buyBusiness('${b.id}')" ${canBuy && unlocked ? '' : 'disabled'}>
+                ${bs.owned > 0 && !hasManager ? `<button class="buy-btn" style="margin-bottom:5px;background:linear-gradient(135deg,#4caf50,#2e7d32)" data-action="collect" data-id="${b.id}">Collect</button><br>` : ''}
+                <button class="buy-btn" data-action="buy" data-id="${b.id}" ${canBuy && unlocked ? '' : 'disabled'}>
                     Buy ${formatNumber(cost)}
                 </button>
             </div>
@@ -907,7 +907,7 @@ function renderUpgrades() {
                 <div class="upgrade-name">${u.name}</div>
                 <div class="upgrade-desc">${u.desc}</div>
             </div>
-            <button class="buy-btn" onclick="buyUpgrade('${u.id}')" ${canBuy ? '' : 'disabled'}>
+            <button class="buy-btn" data-action="upgrade" data-id="${u.id}" ${canBuy ? '' : 'disabled'}>
                 ${purchased ? '✅' : formatNumber(u.cost)}
             </button>
         </div>`;
@@ -935,7 +935,7 @@ function renderPrestige() {
             <div style="margin-top:10px;font-size:0.9em">
                 You will gain: <strong style="color:#ffd700">${prestigeCoins} prestige points</strong>
             </div>
-            <button class="prestige-btn" onclick="doPrestige()" ${prestigeCoins >= 1 ? '' : 'disabled'}>
+            <button class="prestige-btn" data-action="prestige" ${prestigeCoins >= 1 ? '' : 'disabled'}>
                 🏢 Go Public!
             </button>
         </div>
@@ -1007,6 +1007,30 @@ coinBtn.addEventListener('touchstart', (e) => {
 coinBtn.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') handleClick(e);
 });
+
+// Event delegation for all game actions — handles both click and touch
+function handleGameAction(e) {
+    const target = e.target.closest('[data-action]');
+    if (!target || target.disabled) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const action = target.dataset.action;
+    const id = target.dataset.id;
+
+    switch(action) {
+        case 'buy': buyBusiness(id); break;
+        case 'collect': collectBusiness(id); break;
+        case 'manager': buyManager(id); break;
+        case 'upgrade': buyUpgrade(id); break;
+        case 'prestige': doPrestige(); break;
+        case 'reward-ad': watchRewardAd(); break;
+    }
+}
+
+// Attach to the game container for delegation
+document.querySelector('.game-container').addEventListener('click', handleGameAction);
+document.querySelector('.game-container').addEventListener('touchend', handleGameAction, { passive: false });
 
 // ========== ANALYTICS ==========
 
