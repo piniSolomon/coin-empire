@@ -13,9 +13,10 @@ test.beforeEach(async ({ page }) => {
     });
     await page.reload();
     await page.waitForSelector('#coin-button');
-    // Dismiss any modals that might have appeared
+    // Dismiss any modals and disable real ads in test
     await page.evaluate(() => {
         document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+        if (window.adsbygoogle) window.adsbygoogle.loaded = false;
     });
     // Wait for first game tick to render panels
     await page.waitForTimeout(200);

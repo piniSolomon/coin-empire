@@ -29,14 +29,7 @@
     </script>
     <script>
         window.adsbygoogle = window.adsbygoogle || [];
-        window._adsReady = false;
         var adBreak = adConfig = function(o) { adsbygoogle.push(o); };
-        // Detect when real SDK loads
-        var _origPush = adsbygoogle.push;
-        adsbygoogle.push = function(o) {
-            if (o && o.preloadAdBreaks) window._adsReady = true;
-            return _origPush.call(adsbygoogle, o);
-        };
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -679,7 +672,7 @@ function doPrestige() {
         saveGame();
     };
 
-    if (window._adsReady) {
+    if (window.adsbygoogle?.loaded) {
         adBreak({
             type: 'next',
             name: 'prestige-break',
@@ -701,7 +694,7 @@ function watchRewardAd() {
 
     // Try real ad SDK first, fallback to simulated
     // adsbygoogle.loaded is set to true only when the real SDK finishes loading
-    if (window._adsReady) {
+    if (window.adsbygoogle?.loaded) {
         adBreak({
             type: 'reward',
             name: 'boost-2x',
