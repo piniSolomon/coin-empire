@@ -760,7 +760,28 @@ function gameTick() {
     }
 
     state.totalPlayTime += dt;
-    updateUI();
+    // Only update header numbers on tick, not full panels
+    document.getElementById('coins-display').textContent = formatNumber(state.coins);
+    document.getElementById('cps-display').textContent = formatNumber(getTotalCPS());
+    // Update progress bars without full re-render
+    updateProgressBars();
+}
+
+function updateProgressBars() {
+    BUSINESSES.forEach(b => {
+        const bs = state.businesses[b.id];
+        if (bs.owned <= 0) return;
+        const time = getBusinessTime(b);
+        const pct = (bs.progress / time * 100);
+        const bar = document.querySelector(`[data-progress="${b.id}"]`);
+        if (bar) bar.style.width = pct + '%';
+    });
+    // Update boost timer text
+    const boostBtn = document.querySelector('.reward-btn');
+    if (boostBtn && state.boostActive && Date.now() < state.boostEnd) {
+        const rem = Math.ceil((state.boostEnd - Date.now()) / 1000);
+        boostBtn.textContent = `✨ 2x Boost Active (${Math.floor(rem/60)}:${String(rem%60).padStart(2,'0')} left)`;
+    }
 }
 
 // ========== COLLECT (manual business) ==========
@@ -840,7 +861,7 @@ function renderBusinesses() {
                     ${bs.owned > 0 ? `Owned: ${bs.owned}` : ''}
                     ${hasManager ? ' 👔 Manager' : (bs.owned > 0 ? ` | <a href="#" onclick="buyManager('${b.id}');return false" style="color:#a78bfa;text-decoration:none">👔 Hire (${formatNumber(managerCost)})</a>` : '')}
                 </div>
-                ${bs.owned > 0 ? `<div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>` : ''}
+                ${bs.owned > 0 ? `<div class="progress-bar"><div class="progress-fill" data-progress="${b.id}" style="width:${progress}%"></div></div>` : ''}
             </div>
             <div>
                 ${bs.owned > 0 && !hasManager ? `<button class="buy-btn" style="margin-bottom:5px;background:linear-gradient(135deg,#4caf50,#2e7d32)" onclick="collectBusiness('${b.id}')">Collect</button><br>` : ''}
