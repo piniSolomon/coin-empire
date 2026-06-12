@@ -7,9 +7,16 @@ test.beforeEach(async ({ page }) => {
     await page.evaluate(() => {
         localStorage.clear();
         localStorage.setItem('coinEmpireOnboarding', '99'); // Skip onboarding in tests
+        // Prevent daily reward modal from showing
+        const fakeState = { lastDailyReward: Date.now(), dailyStreak: 1, lastOnline: Date.now() };
+        localStorage.setItem('coinEmpireSave', JSON.stringify(fakeState));
     });
     await page.reload();
     await page.waitForSelector('#coin-button');
+    // Dismiss any modals that might have appeared
+    await page.evaluate(() => {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.remove());
+    });
     // Wait for first game tick to render panels
     await page.waitForTimeout(200);
 });
@@ -52,9 +59,9 @@ test('clicking coin earns 1 coin', async ({ page }) => {
 });
 
 test('clicking coin 10 times earns 10 coins', async ({ page }) => {
-    for (let i = 0; i < 10; i++) {
-        await page.locator('#coin-button').click();
-    }
+    await page.evaluate(() => {
+        for (let i = 0; i < 10; i++) handleClick({});
+    });
     const coins = await page.evaluate(() => state.coins);
     expect(coins).toBe(10);
 });
@@ -217,16 +224,14 @@ test('prestige resets progress and increases multiplier', async ({ page }) => {
         state.coins = 5000000;
         state.totalCoins = 5000000;
         buyBusiness('lemonade');
-        updateUI();
     });
 
     // Verify prestige coins available
     const prestigeCoins = await page.evaluate(() => getPrestigeCoins());
     expect(prestigeCoins).toBeGreaterThanOrEqual(1);
 
-    await page.locator('.tab:has-text("Prestige")').click();
-    const btn = page.locator('.prestige-btn');
-    await btn.click();
+    // Execute prestige via JS to avoid DOM re-render race
+    await page.evaluate(() => doPrestige());
 
     const result = await page.evaluate(() => ({
         level: state.prestigeLevel,

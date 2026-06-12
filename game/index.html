@@ -339,6 +339,50 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-8px); }
         }
+
+        /* Daily reward / offline earnings modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } }
+        .modal-box {
+            background: linear-gradient(135deg, #1a1a3e, #2a2a5e);
+            border: 2px solid rgba(255,215,0,0.3);
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 340px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } }
+        .modal-title { color: #ffd700; font-size: 1.3em; margin-bottom: 10px; }
+        .modal-reward { font-size: 2em; color: #ffd700; font-weight: bold; margin: 15px 0; }
+        .modal-streak { font-size: 0.85em; color: #a78bfa; margin-bottom: 15px; }
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.1s;
+        }
+        .modal-btn:hover { transform: scale(1.05); }
+        .modal-btn.secondary {
+            background: linear-gradient(135deg, #9333ea, #7c3aed);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -423,6 +467,9 @@ let state = {
     adsWatched: 0,
     boostActive: false,
     boostEnd: 0,
+    // Daily reward
+    lastDailyReward: 0,
+    dailyStreak: 0,
 };
 
 // Initialize business state
@@ -904,17 +951,7 @@ function loadGame() {
             if (state.hasOwnProperty(k)) state[k] = loaded[k];
         });
 
-        // Calculate offline earnings
-        const offlineTime = Date.now() - state.lastOnline;
-        if (offlineTime > 10000) { // More than 10 seconds offline
-            const cps = getTotalCPS();
-            const offlineEarnings = cps * (offlineTime / 1000) * 0.5; // 50% offline efficiency
-            if (offlineEarnings > 0) {
-                state.coins += offlineEarnings;
-                state.totalCoins += offlineEarnings;
-                showToast(`Welcome back! Earned ${formatNumber(offlineEarnings)} coins while away!`);
-            }
-        }
+        // Offline earnings now handled by checkOfflineEarnings() modal
     }
     state.lastOnline = Date.now();
 }
@@ -999,10 +1036,111 @@ const analytics = {
 // Track session start
 analytics.track('session_start');
 
+// ========== DAILY REWARD & OFFLINE EARNINGS ==========
+
+const DAILY_REWARDS = [50, 100, 200, 400, 800, 1500, 3000]; // Day 1-7
+
+function showModal(title, body, buttons) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal-box">
+        <div class="modal-title">${title}</div>
+        ${body}
+        <div id="modal-buttons"></div>
+    </div>`;
+    document.body.appendChild(overlay);
+
+    const btnContainer = overlay.querySelector('#modal-buttons');
+    buttons.forEach(btn => {
+        const b = document.createElement('button');
+        b.className = 'modal-btn' + (btn.secondary ? ' secondary' : '');
+        b.textContent = btn.text;
+        b.onclick = () => { overlay.remove(); if (btn.action) btn.action(); };
+        btnContainer.appendChild(b);
+    });
+}
+
+function checkDailyReward() {
+    const now = Date.now();
+    const lastReward = state.lastDailyReward || 0;
+    const hoursSinceLast = (now - lastReward) / (1000 * 60 * 60);
+
+    if (hoursSinceLast < 20) return; // Not enough time (20h to allow some flex)
+
+    // Check if streak continues (within 48h) or resets
+    if (hoursSinceLast > 48) {
+        state.dailyStreak = 0;
+    }
+
+    const day = Math.min(state.dailyStreak, DAILY_REWARDS.length - 1);
+    const reward = DAILY_REWARDS[day] * state.prestigeMultiplier;
+
+    state.dailyStreak++;
+    state.lastDailyReward = now;
+
+    analytics.track('daily_reward', { day: state.dailyStreak, reward });
+
+    showModal(
+        '🎁 Daily Reward!',
+        `<div class="modal-reward">+${formatNumber(reward)} coins</div>
+         <div class="modal-streak">🔥 Day ${state.dailyStreak} streak${state.dailyStreak >= 7 ? ' (MAX!)' : ''}</div>
+         <div style="font-size:0.75em;color:#aaa">Come back tomorrow for more!</div>`,
+        [{ text: 'Collect!', action: () => {
+            state.coins += reward;
+            state.totalCoins += reward;
+            showToast(`Daily reward: +${formatNumber(reward)} coins!`);
+            updateUI();
+            saveGame();
+        }}]
+    );
+}
+
+function checkOfflineEarnings() {
+    const offlineTime = Date.now() - state.lastOnline;
+    if (offlineTime < 30000) return; // Less than 30s, skip
+
+    const cps = getTotalCPS();
+    if (cps <= 0) return;
+
+    const baseEarnings = cps * (offlineTime / 1000) * 0.5; // 50% offline efficiency
+    if (baseEarnings < 1) return;
+
+    state.coins += baseEarnings;
+    state.totalCoins += baseEarnings;
+
+    const mins = Math.floor(offlineTime / 60000);
+    const timeStr = mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+
+    analytics.track('offline_earnings', { earnings: baseEarnings, offlineTime });
+
+    showModal(
+        '👋 Welcome Back!',
+        `<div style="color:#aaa;margin-bottom:10px">You were away for ${timeStr}</div>
+         <div class="modal-reward">+${formatNumber(baseEarnings)} coins</div>
+         <div style="font-size:0.8em;color:#aaa;margin-top:5px">earned at 50% efficiency</div>`,
+        [
+            { text: 'Collect', action: () => { updateUI(); saveGame(); } },
+            { text: '🎥 2x (Watch Ad)', secondary: true, action: () => {
+                state.coins += baseEarnings; // Double it
+                state.totalCoins += baseEarnings;
+                state.adsWatched++;
+                analytics.track('ad_watched', { type: 'offline_double' });
+                showToast(`Doubled! +${formatNumber(baseEarnings * 2)} total offline earnings!`);
+                updateUI();
+                saveGame();
+            }}
+        ]
+    );
+}
+
 // ========== INIT ==========
 
 loadGame();
 updateUI();
+
+// Show offline earnings then daily reward (with slight delays so they don't stack)
+setTimeout(() => checkOfflineEarnings(), 300);
+setTimeout(() => checkDailyReward(), 800);
 
 // Game loop - 50ms tick (20fps, smooth enough for idle game)
 setInterval(gameTick, 50);
