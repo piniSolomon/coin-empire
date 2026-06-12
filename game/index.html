@@ -1005,6 +1005,13 @@ function loadGame() {
             if (state.hasOwnProperty(k)) state[k] = loaded[k];
         });
 
+        // Ensure all businesses exist (handles saves from before new businesses were added)
+        BUSINESSES.forEach(b => {
+            if (!state.businesses[b.id]) {
+                state.businesses[b.id] = { owned: 0, progress: 0 };
+            }
+        });
+
         // Offline earnings now handled by checkOfflineEarnings() modal
     }
     state.lastOnline = Date.now();
