@@ -800,13 +800,32 @@ function collectBusiness(bizId) {
         state.totalCoins += income;
         analytics.track('collect', { biz: bizId, income });
 
-        const el = document.createElement('div');
-        el.className = 'click-text';
-        el.textContent = '+' + formatNumber(income);
-        el.style.left = '50%';
-        el.style.top = '50%';
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 800);
+        // Show "Watch ad to double?" modal for larger collections
+        if (income >= 50) {
+            showModal(
+                `${biz.icon} Collected!`,
+                `<div class="modal-reward">+${formatNumber(income)} coins</div>`,
+                [
+                    { text: 'OK', action: () => updateUI() },
+                    { text: '🎥 2x (Watch Ad)', secondary: true, action: () => {
+                        state.coins += income;
+                        state.totalCoins += income;
+                        state.adsWatched++;
+                        analytics.track('ad_watched', { type: 'double_collect', biz: bizId, income });
+                        showToast(`Doubled! +${formatNumber(income * 2)} total!`);
+                        updateUI();
+                    }}
+                ]
+            );
+        } else {
+            const el = document.createElement('div');
+            el.className = 'click-text';
+            el.textContent = '+' + formatNumber(income);
+            el.style.left = '50%';
+            el.style.top = '50%';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
     }
     updateUI();
 }
