@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Empire - Idle Tycoon</title>
+    <!-- Google Ad Placement API — replace ca-pub-XXXXXXX with real publisher ID -->
+    <script async
+        data-ad-frequency-hint="30s"
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXX"
+        crossorigin="anonymous">
+    </script>
+    <script>
+        window.adsbygoogle = window.adsbygoogle || [];
+        window._adsReady = false;
+        var adBreak = adConfig = function(o) { adsbygoogle.push(o); };
+        // Detect when real SDK loads
+        var _origPush = adsbygoogle.push;
+        adsbygoogle.push = function(o) {
+            if (o && o.preloadAdBreaks) window._adsReady = true;
+            return _origPush.call(adsbygoogle, o);
+        };
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 15px 10px;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .header h1 { font-size: 1.4em; color: #ffd700; text-shadow: 0 0 20px rgba(255,215,0,0.3); }
+        .header .coins-display {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-top: 5px;
+        }
+        .header .coins-per-sec {
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        /* Click Area */
+        .click-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+        }
+        .coin-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #ffd700;
+            background: radial-gradient(circle at 35% 35%, #ffe066, #ffd700, #cc9900);
+            font-size: 3em;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 0 30px rgba(255,215,0,0.3), inset 0 -3px 6px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .coin-button:active {
+            transform: scale(0.92);
+            box-shadow: 0 0 15px rgba(255,215,0,0.5);
+        }
+        .coin-button:hover {
+            box-shadow: 0 0 40px rgba(255,215,0,0.5);
+        }
+
+        /* Click floating text */
+        .click-text {
+            position: fixed;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.2em;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 100;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-60px); }
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab:hover { background: rgba(255,255,255,0.05); }
+        .tab.active {
+            background: rgba(255,255,255,0.08);
+            border-bottom-color: #ffd700;
+            color: #ffd700;
+        }
+
+        /* Panels */
+        .panel { display: none; padding: 10px; }
+        .panel.active { display: block; }
+
+        /* Business Cards */
+        .business-card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+        .business-card:hover { border-color: rgba(255,215,0,0.3); }
+        .business-card.locked { opacity: 0.4; }
+        .business-icon { font-size: 2.2em; width: 50px; text-align: center; }
+        .business-info { flex: 1; }
+        .business-name { font-weight: bold; font-size: 0.95em; }
+        .business-stats { font-size: 0.75em; color: #aaa; margin-top: 2px; }
+        .business-owned { color: #ffd700; font-size: 0.75em; }
+
+        .buy-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            min-width: 80px;
+            text-align: center;
+        }
+        .buy-btn:hover { transform: scale(1.05); }
+        .buy-btn:active { transform: scale(0.95); }
+        .buy-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+        /* Progress bar for business production */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        /* Upgrade Cards */
+        .upgrade-card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .upgrade-card.purchased { opacity: 0.4; border-color: #4caf50; }
+        .upgrade-icon { font-size: 1.5em; width: 35px; text-align: center; }
+        .upgrade-info { flex: 1; }
+        .upgrade-name { font-weight: bold; font-size: 0.85em; }
+        .upgrade-desc { font-size: 0.7em; color: #aaa; }
+
+        /* Prestige Panel */
+        .prestige-box {
+            background: rgba(147,51,234,0.15);
+            border: 1px solid rgba(147,51,234,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .prestige-box h3 { color: #a78bfa; margin-bottom: 10px; }
+        .prestige-multiplier { font-size: 2em; color: #ffd700; font-weight: bold; }
+        .prestige-btn {
+            margin-top: 15px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #9333ea, #7c3aed);
+            color: white;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .prestige-btn:hover { transform: scale(1.05); }
+        .prestige-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Stats Panel */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85em;
+        }
+        .stat-label { color: #aaa; }
+        .stat-value { color: #ffd700; font-weight: bold; }
+
+        /* Reward Ad Button */
+        .reward-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px dashed rgba(255,215,0,0.3);
+            border-radius: 10px;
+            background: rgba(255,215,0,0.05);
+            color: #ffd700;
+            font-size: 0.85em;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .reward-btn:hover { background: rgba(255,215,0,0.1); }
+        .reward-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Notification toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(76,175,80,0.95);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            z-index: 1000;
+            animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 2s forwards;
+            pointer-events: none;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
+
+        /* Responsive */
+        @media (min-width: 600px) {
+            body { display: flex; justify-content: center; }
+            .game-container { width: 400px; }
+        }
+
+        /* Ad placeholder */
+        .ad-slot {
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(255,255,255,0.1);
+            text-align: center;
+            padding: 8px;
+            font-size: 0.7em;
+            color: #555;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <!-- Header -->
+    <div class="header">
+        <h1>Coin Empire</h1>
+        <div class="coins-display" id="coins-display">0</div>
+        <div class="coins-per-sec"><span id="cps-display">0</span> coins/sec</div>
+    </div>
+
+    <!-- Click Area -->
+    <div class="click-area">
+        <div class="coin-button" id="coin-button" role="button" tabindex="0">
+            <span>&#x1fa99;</span>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" data-tab="businesses">Businesses</div>
+        <div class="tab" data-tab="upgrades">Upgrades</div>
+        <div class="tab" data-tab="prestige">Prestige</div>
+        <div class="tab" data-tab="stats">Stats</div>
+    </div>
+
+    <!-- Businesses Panel -->
+    <div class="panel active" id="panel-businesses"></div>
+
+    <!-- Upgrades Panel -->
+    <div class="panel" id="panel-upgrades"></div>
+
+    <!-- Prestige Panel -->
+    <div class="panel" id="panel-prestige"></div>
+
+    <!-- Stats Panel -->
+    <div class="panel" id="panel-stats"></div>
+
+    <!-- Ad slot placeholder -->
+    <div class="ad-slot" id="ad-banner">Ad Space</div>
+</div>
+
+<script>
+// ========== GAME DATA ==========
+const BUSINESSES = [
+    { id: 'lemonade',   name: 'Lemonade Stand', icon: '🍋', baseCost: 10,      baseIncome: 1,       costMult: 1.15, time: 1000 },
+    { id: 'coffee',     name: 'Coffee Shop',     icon: '☕',       baseCost: 100,     baseIncome: 5,       costMult: 1.15, time: 2000 },
+    { id: 'restaurant', name: 'Restaurant',       icon: '🍽️', baseCost: 1000,    baseIncome: 25,      costMult: 1.15, time: 4000 },
+    { id: 'techco',     name: 'Tech Startup',     icon: '💻', baseCost: 12000,   baseIncome: 120,     costMult: 1.15, time: 8000 },
+    { id: 'spacecorp',  name: 'Space Corp',       icon: '🚀', baseCost: 150000,  baseIncome: 600,     costMult: 1.15, time: 15000 },
+];
+
+const UPGRADES = [
+    { id: 'click1',    name: 'Better Fingers',     icon: '👆', desc: '2x click power',         cost: 100,     type: 'click', mult: 2 },
+    { id: 'click2',    name: 'Golden Touch',        icon: '✨',       desc: '3x click power',         cost: 5000,    type: 'click', mult: 3 },
+    { id: 'biz1',      name: 'Fresh Lemons',        icon: '🍋', desc: '2x Lemonade income',     cost: 500,     type: 'business', target: 'lemonade', mult: 2 },
+    { id: 'biz2',      name: 'Premium Beans',       icon: '☕',       desc: '2x Coffee income',       cost: 5000,    type: 'business', target: 'coffee', mult: 2 },
+    { id: 'biz3',      name: 'Michelin Star',        icon: '⭐',       desc: '2x Restaurant income',   cost: 50000,   type: 'business', target: 'restaurant', mult: 2 },
+    { id: 'biz4',      name: 'AI Integration',      icon: '🤖', desc: '2x Tech Startup income', cost: 500000,  type: 'business', target: 'techco', mult: 2 },
+    { id: 'biz5',      name: 'Warp Drive',          icon: '👾', desc: '2x Space Corp income',   cost: 5000000, type: 'business', target: 'spacecorp', mult: 2 },
+    { id: 'speed1',    name: 'Efficiency Boost',    icon: '⚡',       desc: 'All businesses 20% faster', cost: 10000, type: 'speed', mult: 0.8 },
+    { id: 'speed2',    name: 'Quantum Efficiency',  icon: '🔬', desc: 'All businesses 30% faster', cost: 200000, type: 'speed', mult: 0.7 },
+];
+
+// ========== GAME STATE ==========
+let state = {
+    coins: 0,
+    totalCoins: 0,
+    totalClicks: 0,
+    clickPower: 1,
+    prestigeLevel: 0,
+    prestigeMultiplier: 1,
+    businesses: {},
+    upgrades: {},
+    managers: {},
+    startTime: Date.now(),
+    lastSave: Date.now(),
+    lastOnline: Date.now(),
+    totalPlayTime: 0,
+    // Ad tracking
+    adsWatched: 0,
+    boostActive: false,
+    boostEnd: 0,
+};
+
+// Initialize business state
+BUSINESSES.forEach(b => {
+    state.businesses[b.id] = { owned: 0, progress: 0 };
+});
+
+// ========== CORE FUNCTIONS ==========
+
+function formatNumber(n) {
+    if (n < 1000) return Math.floor(n).toLocaleString();
+    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc'];
+    const tier = Math.floor(Math.log10(Math.abs(n)) / 3);
+    if (tier === 0) return Math.floor(n).toLocaleString();
+    const suffix = suffixes[Math.min(tier, suffixes.length - 1)];
+    const scale = Math.pow(10, tier * 3);
+    const scaled = n / scale;
+    return scaled.toFixed(scaled < 10 ? 2 : scaled < 100 ? 1 : 0) + suffix;
+}
+
+function getBusinessCost(biz, owned) {
+    return Math.floor(biz.baseCost * Math.pow(biz.costMult, owned));
+}
+
+function getBusinessIncome(biz, bizState) {
+    let income = biz.baseIncome * bizState.owned;
+    // Apply upgrade multipliers
+    UPGRADES.forEach(u => {
+        if (u.type === 'business' && u.target === biz.id && state.upgrades[u.id]) {
+            income *= u.mult;
+        }
+    });
+    // Apply prestige multiplier
+    income *= state.prestigeMultiplier;
+    // Apply boost
+    if (state.boostActive && Date.now() < state.boostEnd) {
+        income *= 2;
+    }
+    return income;
+}
+
+function getBusinessTime(biz) {
+    let time = biz.time;
+    UPGRADES.forEach(u => {
+        if (u.type === 'speed' && state.upgrades[u.id]) {
+            time *= u.mult;
+        }
+    });
+    return time;
+}
+
+function getTotalCPS() {
+    let cps = 0;
+    BUSINESSES.forEach(b => {
+        const bs = state.businesses[b.id];
+        if (bs.owned > 0 && state.managers[b.id]) {
+            const income = getBusinessIncome(b, bs);
+            const time = getBusinessTime(b);
+            cps += income / (time / 1000);
+        }
+    });
+    return cps;
+}
+
+function getClickValue() {
+    let power = state.clickPower;
+    UPGRADES.forEach(u => {
+        if (u.type === 'click' && state.upgrades[u.id]) {
+            power *= u.mult;
+        }
+    });
+    power *= state.prestigeMultiplier;
+    if (state.boostActive && Date.now() < state.boostEnd) power *= 2;
+    return power;
+}
+
+function getPrestigeCoins() {
+    // Prestige coins based on total earned this run
+    return Math.floor(Math.pow(state.totalCoins / 1000000, 0.5));
+}
+
+// ========== CLICK HANDLER ==========
+
+function handleClick(e) {
+    const value = getClickValue();
+    state.coins += value;
+    state.totalCoins += value;
+    state.totalClicks++;
+
+    // Floating text
+    const el = document.createElement('div');
+    el.className = 'click-text';
+    el.textContent = '+' + formatNumber(value);
+    const rect = document.getElementById('coin-button').getBoundingClientRect();
+    el.style.left = (rect.left + rect.width / 2 - 20 + (Math.random() * 40 - 20)) + 'px';
+    el.style.top = (rect.top - 10) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 800);
+
+    updateUI();
+}
+
+// ========== BUY BUSINESS ==========
+
+function buyBusiness(bizId) {
+    const biz = BUSINESSES.find(b => b.id === bizId);
+    const bs = state.businesses[bizId];
+    const cost = getBusinessCost(biz, bs.owned);
+    if (state.coins >= cost) {
+        state.coins -= cost;
+        bs.owned++;
+        showToast(`Bought ${biz.icon} ${biz.name}! (${bs.owned} owned)`);
+        updateUI();
+    }
+}
+
+// ========== BUY MANAGER ==========
+
+function buyManager(bizId) {
+    const biz = BUSINESSES.find(b => b.id === bizId);
+    const cost = getBusinessCost(biz, 0) * 10;
+    if (state.coins >= cost && !state.managers[bizId]) {
+        state.coins -= cost;
+        state.managers[bizId] = true;
+        showToast(`Hired manager for ${biz.icon} ${biz.name}!`);
+        updateUI();
+    }
+}
+
+// ========== BUY UPGRADE ==========
+
+function buyUpgrade(upgradeId) {
+    const upgrade = UPGRADES.find(u => u.id === upgradeId);
+    if (state.coins >= upgrade.cost && !state.upgrades[upgradeId]) {
+        state.coins -= upgrade.cost;
+        state.upgrades[upgradeId] = true;
+        showToast(`Purchased ${upgrade.icon} ${upgrade.name}!`);
+        updateUI();
+    }
+}
+
+// ========== PRESTIGE ==========
+
+function doPrestige() {
+    const prestigeCoins = getPrestigeCoins();
+    if (prestigeCoins < 1) return;
+
+    // Show interstitial ad on prestige (natural break point)
+    const applyPrestige = () => {
+        state.prestigeLevel++;
+        state.prestigeMultiplier = 1 + (state.prestigeLevel * 0.5);
+
+        // Reset progress
+        state.coins = 0;
+        state.totalCoins = 0;
+        BUSINESSES.forEach(b => {
+            state.businesses[b.id] = { owned: 0, progress: 0 };
+        });
+        state.upgrades = {};
+        state.managers = {};
+        state.clickPower = 1;
+        state.boostActive = false;
+        state.boostEnd = 0;
+
+        showToast(`Went Public! Prestige level ${state.prestigeLevel} (${state.prestigeMultiplier}x multiplier)`);
+        updateUI();
+        saveGame();
+    };
+
+    if (window._adsReady) {
+        adBreak({
+            type: 'next',
+            name: 'prestige-break',
+            beforeAd: function() { /* pause game */ },
+            afterAd: function() { applyPrestige(); },
+            adBreakDone: function(info) {
+                if (info.breakStatus !== 'viewed') applyPrestige();
+            }
+        });
+    } else {
+        applyPrestige();
+    }
+}
+
+// ========== REWARD AD (simulated for MVP) ==========
+
+function watchRewardAd() {
+    if (state.boostActive && Date.now() < state.boostEnd) return;
+
+    // Try real ad SDK first, fallback to simulated
+    // adsbygoogle.loaded is set to true only when the real SDK finishes loading
+    if (window._adsReady) {
+        adBreak({
+            type: 'reward',
+            name: 'boost-2x',
+            beforeReward: function(showAdFn) { showAdFn(); },
+            adViewed: function() {
+                state.boostActive = true;
+                state.boostEnd = Date.now() + 300000;
+                state.adsWatched++;
+                showToast('2x Boost activated for 5 minutes!');
+                updateUI();
+            },
+            adDismissed: function() {
+                showToast('Ad skipped — no boost applied.');
+            },
+            adBreakDone: function(info) {
+                console.log('Reward ad break:', info.breakStatus);
+            }
+        });
+    } else {
+        // Simulated ad for development/testing
+        state.boostActive = true;
+        state.boostEnd = Date.now() + 300000;
+        state.adsWatched++;
+        showToast('2x Boost activated for 5 minutes! (simulated ad)');
+        updateUI();
+    }
+}
+
+// ========== TOAST ==========
+
+function showToast(msg) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+}
+
+// ========== GAME LOOP ==========
+
+let lastTick = Date.now();
+
+function gameTick() {
+    const now = Date.now();
+    const dt = now - lastTick;
+    lastTick = now;
+
+    // Update businesses
+    BUSINESSES.forEach(b => {
+        const bs = state.businesses[b.id];
+        if (bs.owned <= 0) return;
+
+        const hasManager = state.managers[b.id];
+        if (!hasManager) return; // Manual businesses don't auto-produce (click each one)
+
+        const time = getBusinessTime(b);
+        bs.progress += dt;
+
+        while (bs.progress >= time) {
+            bs.progress -= time;
+            const income = getBusinessIncome(b, bs);
+            state.coins += income;
+            state.totalCoins += income;
+        }
+    });
+
+    // Check boost expiry
+    if (state.boostActive && Date.now() >= state.boostEnd) {
+        state.boostActive = false;
+        showToast('2x Boost expired!');
+    }
+
+    state.totalPlayTime += dt;
+    updateUI();
+}
+
+// ========== COLLECT (manual business) ==========
+
+function collectBusiness(bizId) {
+    const biz = BUSINESSES.find(b => b.id === bizId);
+    const bs = state.businesses[bizId];
+    if (bs.owned <= 0 || state.managers[bizId]) return;
+
+    const time = getBusinessTime(biz);
+    bs.progress += time; // Instantly complete one cycle
+    if (bs.progress >= time) {
+        bs.progress = 0;
+        const income = getBusinessIncome(biz, bs);
+        state.coins += income;
+        state.totalCoins += income;
+
+        const el = document.createElement('div');
+        el.className = 'click-text';
+        el.textContent = '+' + formatNumber(income);
+        el.style.left = '50%';
+        el.style.top = '50%';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 800);
+    }
+    updateUI();
+}
+
+// ========== UI RENDERING ==========
+
+function updateUI() {
+    // Header
+    document.getElementById('coins-display').textContent = formatNumber(state.coins);
+    document.getElementById('cps-display').textContent = formatNumber(getTotalCPS());
+
+    // Only re-render panels if visible (performance)
+    const activeTab = document.querySelector('.tab.active')?.dataset.tab;
+    if (activeTab === 'businesses') renderBusinesses();
+    else if (activeTab === 'upgrades') renderUpgrades();
+    else if (activeTab === 'prestige') renderPrestige();
+    else if (activeTab === 'stats') renderStats();
+}
+
+function renderBusinesses() {
+    const panel = document.getElementById('panel-businesses');
+    let html = '';
+
+    // Reward ad button
+    const boostActive = state.boostActive && Date.now() < state.boostEnd;
+    const boostRemaining = boostActive ? Math.ceil((state.boostEnd - Date.now()) / 1000) : 0;
+    html += `<button class="reward-btn" onclick="watchRewardAd()" ${boostActive ? 'disabled' : ''}>
+        ${boostActive
+            ? `✨ 2x Boost Active (${Math.floor(boostRemaining/60)}:${String(boostRemaining%60).padStart(2,'0')} left)`
+            : '🎥 Watch Ad for 2x Boost (5 min)'}
+    </button>`;
+
+    BUSINESSES.forEach((b, i) => {
+        const bs = state.businesses[b.id];
+        const cost = getBusinessCost(b, bs.owned);
+        const canBuy = state.coins >= cost;
+        const income = getBusinessIncome(b, bs);
+        const time = getBusinessTime(b);
+        const hasManager = state.managers[b.id];
+        const managerCost = getBusinessCost(b, 0) * 10;
+        const progress = bs.owned > 0 ? (bs.progress / time * 100) : 0;
+        const unlocked = i === 0 || state.businesses[BUSINESSES[i-1].id].owned > 0;
+
+        html += `<div class="business-card ${unlocked ? '' : 'locked'}">
+            <div class="business-icon">${b.icon}</div>
+            <div class="business-info">
+                <div class="business-name">${b.name}</div>
+                <div class="business-stats">
+                    ${bs.owned > 0 ? `${formatNumber(income)}/cycle (${(time/1000).toFixed(1)}s)` : 'Not owned yet'}
+                </div>
+                <div class="business-owned">
+                    ${bs.owned > 0 ? `Owned: ${bs.owned}` : ''}
+                    ${hasManager ? ' 👔 Manager' : (bs.owned > 0 ? ` | <a href="#" onclick="buyManager('${b.id}');return false" style="color:#a78bfa;text-decoration:none">👔 Hire (${formatNumber(managerCost)})</a>` : '')}
+                </div>
+                ${bs.owned > 0 ? `<div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>` : ''}
+            </div>
+            <div>
+                ${bs.owned > 0 && !hasManager ? `<button class="buy-btn" style="margin-bottom:5px;background:linear-gradient(135deg,#4caf50,#2e7d32)" onclick="collectBusiness('${b.id}')">Collect</button><br>` : ''}
+                <button class="buy-btn" onclick="buyBusiness('${b.id}')" ${canBuy && unlocked ? '' : 'disabled'}>
+                    Buy ${formatNumber(cost)}
+                </button>
+            </div>
+        </div>`;
+    });
+
+    panel.innerHTML = html;
+}
+
+function renderUpgrades() {
+    const panel = document.getElementById('panel-upgrades');
+    let html = '';
+
+    UPGRADES.forEach(u => {
+        const purchased = state.upgrades[u.id];
+        const canBuy = state.coins >= u.cost && !purchased;
+        html += `<div class="upgrade-card ${purchased ? 'purchased' : ''}">
+            <div class="upgrade-icon">${u.icon}</div>
+            <div class="upgrade-info">
+                <div class="upgrade-name">${u.name}</div>
+                <div class="upgrade-desc">${u.desc}</div>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade('${u.id}')" ${canBuy ? '' : 'disabled'}>
+                ${purchased ? '✅' : formatNumber(u.cost)}
+            </button>
+        </div>`;
+    });
+
+    panel.innerHTML = html;
+}
+
+function renderPrestige() {
+    const panel = document.getElementById('panel-prestige');
+    const prestigeCoins = getPrestigeCoins();
+    const nextMult = 1 + ((state.prestigeLevel + 1) * 0.5);
+
+    panel.innerHTML = `
+        <div class="prestige-box">
+            <h3>🏢 Go Public</h3>
+            <p style="color:#aaa;font-size:0.85em;margin-bottom:10px">
+                Reset your progress but gain a permanent earnings multiplier!
+            </p>
+            <div>Current Level: <strong style="color:#a78bfa">${state.prestigeLevel}</strong></div>
+            <div class="prestige-multiplier">${state.prestigeMultiplier}x</div>
+            <div style="font-size:0.8em;color:#aaa;margin-top:5px">
+                Next: ${nextMult}x (need ${formatNumber(Math.pow(1, 2) * 1000000)} total coins)
+            </div>
+            <div style="margin-top:10px;font-size:0.9em">
+                You will gain: <strong style="color:#ffd700">${prestigeCoins} prestige points</strong>
+            </div>
+            <button class="prestige-btn" onclick="doPrestige()" ${prestigeCoins >= 1 ? '' : 'disabled'}>
+                🏢 Go Public!
+            </button>
+        </div>
+    `;
+}
+
+function renderStats() {
+    const panel = document.getElementById('panel-stats');
+    const playMins = Math.floor(state.totalPlayTime / 60000);
+
+    panel.innerHTML = `
+        <div class="stat-row"><span class="stat-label">Total Coins Earned</span><span class="stat-value">${formatNumber(state.totalCoins)}</span></div>
+        <div class="stat-row"><span class="stat-label">Total Clicks</span><span class="stat-value">${state.totalClicks.toLocaleString()}</span></div>
+        <div class="stat-row"><span class="stat-label">Click Power</span><span class="stat-value">${formatNumber(getClickValue())}</span></div>
+        <div class="stat-row"><span class="stat-label">Coins/Second</span><span class="stat-value">${formatNumber(getTotalCPS())}</span></div>
+        <div class="stat-row"><span class="stat-label">Prestige Level</span><span class="stat-value">${state.prestigeLevel}</span></div>
+        <div class="stat-row"><span class="stat-label">Prestige Multiplier</span><span class="stat-value">${state.prestigeMultiplier}x</span></div>
+        <div class="stat-row"><span class="stat-label">Ads Watched</span><span class="stat-value">${state.adsWatched}</span></div>
+        <div class="stat-row"><span class="stat-label">Businesses Owned</span><span class="stat-value">${Object.values(state.businesses).reduce((a,b) => a + b.owned, 0)}</span></div>
+        <div class="stat-row"><span class="stat-label">Managers Hired</span><span class="stat-value">${Object.values(state.managers).filter(Boolean).length}</span></div>
+        <div class="stat-row"><span class="stat-label">Upgrades Bought</span><span class="stat-value">${Object.values(state.upgrades).filter(Boolean).length}</span></div>
+        <div class="stat-row"><span class="stat-label">Play Time</span><span class="stat-value">${playMins} min</span></div>
+        <div class="stat-row"><span class="stat-label">2x Boost</span><span class="stat-value">${state.boostActive && Date.now() < state.boostEnd ? 'Active' : 'Inactive'}</span></div>
+    `;
+}
+
+// ========== TAB SWITCHING ==========
+
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+        updateUI();
+    });
+});
+
+// ========== SAVE/LOAD ==========
+
+function saveGame() {
+    state.lastSave = Date.now();
+    localStorage.setItem('coinEmpireSave', JSON.stringify(state));
+}
+
+function loadGame() {
+    const saved = localStorage.getItem('coinEmpireSave');
+    if (saved) {
+        const loaded = JSON.parse(saved);
+        // Merge to handle new properties
+        Object.keys(loaded).forEach(k => {
+            if (state.hasOwnProperty(k)) state[k] = loaded[k];
+        });
+
+        // Calculate offline earnings
+        const offlineTime = Date.now() - state.lastOnline;
+        if (offlineTime > 10000) { // More than 10 seconds offline
+            const cps = getTotalCPS();
+            const offlineEarnings = cps * (offlineTime / 1000) * 0.5; // 50% offline efficiency
+            if (offlineEarnings > 0) {
+                state.coins += offlineEarnings;
+                state.totalCoins += offlineEarnings;
+                showToast(`Welcome back! Earned ${formatNumber(offlineEarnings)} coins while away!`);
+            }
+        }
+    }
+    state.lastOnline = Date.now();
+}
+
+// ========== EVENT LISTENERS ==========
+
+const coinBtn = document.getElementById('coin-button');
+coinBtn.addEventListener('click', handleClick);
+coinBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault(); // Prevent double-fire and 300ms delay on mobile
+    handleClick(e);
+}, { passive: false });
+coinBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+});
+
+// ========== INIT ==========
+
+loadGame();
+updateUI();
+
+// Game loop - 50ms tick (20fps, smooth enough for idle game)
+setInterval(gameTick, 50);
+
+// Auto-save every 30 seconds
+setInterval(saveGame, 30000);
+
+// Save on close
+window.addEventListener('beforeunload', saveGame);
+
+// Track online time
+setInterval(() => { state.lastOnline = Date.now(); }, 5000);
+
+</script>
+</body>
+</html>
