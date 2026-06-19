@@ -53,3 +53,18 @@
 **Files changed**: game/index.html, tests/game.spec.js (new), playwright.config.js (new), package.json (new)
 **Result**: 30/30 E2E tests passing. Mobile touch fixed. Ad SDK integrated with graceful fallback.
 **Next**: Deploy to GitHub Pages (#7)
+
+### 2026-06-19 08:29 UTC
+**Task**: #13 - Submit game to CrazyGames for portal revenue
+**What I did**:
+- Navigated CrazyGames developer portal (already logged in from previous session)
+- Filled all Details page fields: Category (Clicker), Tags (Management, Idle, Incremental, Collect, Business)
+- Wrote game description and controls text
+- Generated 3 cover images (landscape 1920x1080, portrait 800x1200, square 800x800) using Python/Pillow with branded design
+- Recorded 15-second gameplay videos (landscape + portrait) using Playwright frame capture + ffmpeg
+- Uploaded all 5 assets (3 covers + 2 videos) through the portal
+- Accepted Terms & Conditions and PEGI 12 rating
+- Clicked "Submit for approval"
+**Files changed**: cover-landscape.png, cover-portrait.png, cover-square.png, preview-landscape.mp4, preview-portrait.mp4 (new assets)
+**Result**: Game submitted to CrazyGames! Status: "Awaiting review". Submission date: 19.06.2026. Game ID: 46bab2fc-d850-4eb9-a5f2-9eb16a2989fd
+**Next**: Wait for CrazyGames review, set up billing details, continue with other tasks
