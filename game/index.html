@@ -35,6 +35,49 @@
         window.adsbygoogle = window.adsbygoogle || [];
         var adBreak = adConfig = function(o) { adsbygoogle.push(o); };
     </script>
+
+    <!-- GameDistribution SDK -->
+    <script>
+        // Set GD_GAME_ID to your GameDistribution game ID once you have one
+        // Get it from https://developer.gamedistribution.com/ after submitting
+        var GD_GAME_ID = localStorage.getItem('gd_game_id') || '';
+
+        if (GD_GAME_ID) {
+            window["GD_OPTIONS"] = {
+                "gameId": GD_GAME_ID,
+                "advertisementSettings": {
+                    "debug": false,
+                    "autoplay": false,
+                    "locale": "en"
+                },
+                "onEvent": function(event) {
+                    switch (event.name) {
+                        case "SDK_GAME_START":
+                            // Resume game after ad
+                            break;
+                        case "SDK_GAME_PAUSE":
+                            // Pause game during ad
+                            break;
+                        case "SDK_REWARDED_WATCH_COMPLETE":
+                            // Grant reward
+                            if (window._gdRewardCallback) {
+                                window._gdRewardCallback();
+                                window._gdRewardCallback = null;
+                            }
+                            break;
+                    }
+                }
+            };
+            (function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s);
+                js.id = id;
+                js.src = 'https://html5.api.gamedistribution.com/main.min.js';
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'gamedistribution-jssdk'));
+        }
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -431,13 +474,13 @@
         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
     <div style="text-align:center;padding:5px;font-size:0.65em;color:#555">
-        <a href="privacy.html" style="color:#666;text-decoration:none">Privacy Policy</a> · v1.3.0
+        <a href="privacy.html" style="color:#666;text-decoration:none">Privacy Policy</a> · v1.4.0
     </div>
 </div>
 
 <script>
 // ========== GAME DATA ==========
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 const BUSINESSES = [
     { id: 'lemonade',   name: 'Lemonade Stand', icon: '🍋', baseCost: 10,      baseIncome: 1,       costMult: 1.15, time: 1000 },
     { id: 'coffee',     name: 'Coffee Shop',     icon: '☕',       baseCost: 100,     baseIncome: 5,       costMult: 1.15, time: 2000 },
@@ -776,7 +819,10 @@ function doPrestige() {
         saveGame();
     };
 
-    if (window.adsbygoogle?.loaded) {
+    if (typeof gdsdk !== 'undefined' && gdsdk.showAd) {
+        // GameDistribution interstitial
+        gdsdk.showAd().then(() => applyPrestige()).catch(() => applyPrestige());
+    } else if (window.adsbygoogle?.loaded) {
         adBreak({
             type: 'next',
             name: 'prestige-break',
@@ -796,9 +842,22 @@ function doPrestige() {
 function watchRewardAd() {
     if (state.boostActive && Date.now() < state.boostEnd) return;
 
-    // Try real ad SDK first, fallback to simulated
-    // adsbygoogle.loaded is set to true only when the real SDK finishes loading
-    if (window.adsbygoogle?.loaded) {
+    // Try GameDistribution first, then AdSense, then simulated
+    if (typeof gdsdk !== 'undefined' && gdsdk.showAd) {
+        // GameDistribution rewarded ad
+        window._gdRewardCallback = function() {
+            state.boostActive = true;
+            state.boostEnd = Date.now() + 300000;
+            state.adsWatched++;
+            analytics.track('ad_watched', { type: 'reward_gd' });
+            showToast('2x Boost activated for 5 minutes!');
+            updateUI();
+        };
+        gdsdk.showAd('rewarded').catch(() => {
+            showToast('No ad available right now.');
+            window._gdRewardCallback = null;
+        });
+    } else if (window.adsbygoogle?.loaded) {
         adBreak({
             type: 'reward',
             name: 'boost-2x',
