@@ -68,3 +68,18 @@
 **Files changed**: cover-landscape.png, cover-portrait.png, cover-square.png, preview-landscape.mp4, preview-portrait.mp4 (new assets)
 **Result**: Game submitted to CrazyGames! Status: "Awaiting review". Submission date: 19.06.2026. Game ID: 46bab2fc-d850-4eb9-a5f2-9eb16a2989fd
 **Next**: Wait for CrazyGames review, set up billing details, continue with other tasks
+
+### 2026-06-20 10:24 UTC
+**Task**: Fix AdSense + submit to game portals
+**What I did**:
+- Checked AdSense: both sites "Getting ready", ads.txt "Not found" — root cause: piniSolomon.github.io repo was PRIVATE
+- Fixed by making repo public + enabling GitHub Pages — ads.txt now serving correctly
+- Integrated GameMonetize SDK into game/index.html (game ID: 401amiihx2odizvihatl0s5z20geoxts)
+- Uploaded game to GameMonetize, SDK verified loading, activation blocked on ad view
+- Registered GameMonetize account as "Pini Solomon Games"
+- CrazyGames submission was REJECTED (quality bar — emoji art, low-quality videos)
+- Attempted itch.io registration — email already in use, sent password reset
+- Attempted GamePix registration — reCAPTCHA blocked
+**Files changed**: game/index.html (GameMonetize SDK), docs/STATUS.md
+**Result**: AdSense ads.txt now live at domain root. This should unblock Google site approval.
+**Next**: Wait for AdSense approval, get itch.io login from owner, drive traffic via Reddit
