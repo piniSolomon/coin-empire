@@ -78,6 +78,37 @@
             }(document, 'script', 'gamedistribution-jssdk'));
         }
     </script>
+
+    <!-- GameMonetize SDK -->
+    <script type="text/javascript">
+        window.SDK_OPTIONS = {
+            gameId: "401amiihx2odizvihatl0s5z20geoxts",
+            onEvent: function(a) {
+                switch (a.name) {
+                    case "SDK_GAME_PAUSE":
+                        // Mute and pause game during ad
+                        if (window._gameAudioCtx) {
+                            try { window._gameAudioCtx.suspend(); } catch(e) {}
+                        }
+                        break;
+                    case "SDK_GAME_START":
+                        // Resume game after ad
+                        if (window._gameAudioCtx) {
+                            try { window._gameAudioCtx.resume(); } catch(e) {}
+                        }
+                        break;
+                    case "SDK_READY":
+                        window._gmSdkReady = true;
+                        break;
+                }
+            }
+        };
+        (function(a, b, c) {
+            var d = a.getElementsByTagName(b)[0];
+            a.getElementById(c) || (a = a.createElement(b), a.id = c,
+            a.src = "https://api.gamemonetize.com/sdk.js", d.parentNode.insertBefore(a, d))
+        })(document, "script", "gamemonetize-sdk");
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -822,6 +853,10 @@ function doPrestige() {
     if (typeof gdsdk !== 'undefined' && gdsdk.showAd) {
         // GameDistribution interstitial
         gdsdk.showAd().then(() => applyPrestige()).catch(() => applyPrestige());
+    } else if (window._gmSdkReady && typeof sdk !== 'undefined' && sdk.showBanner) {
+        // GameMonetize interstitial
+        sdk.showBanner();
+        applyPrestige();
     } else if (window.adsbygoogle?.loaded) {
         adBreak({
             type: 'next',
@@ -842,7 +877,7 @@ function doPrestige() {
 function watchRewardAd() {
     if (state.boostActive && Date.now() < state.boostEnd) return;
 
-    // Try GameDistribution first, then AdSense, then simulated
+    // Try GameDistribution first, then GameMonetize, then AdSense, then simulated
     if (typeof gdsdk !== 'undefined' && gdsdk.showAd) {
         // GameDistribution rewarded ad
         window._gdRewardCallback = function() {
@@ -857,6 +892,15 @@ function watchRewardAd() {
             showToast('No ad available right now.');
             window._gdRewardCallback = null;
         });
+    } else if (window._gmSdkReady && typeof sdk !== 'undefined' && sdk.showBanner) {
+        // GameMonetize rewarded ad
+        sdk.showBanner();
+        state.boostActive = true;
+        state.boostEnd = Date.now() + 300000;
+        state.adsWatched++;
+        analytics.track('ad_watched', { type: 'reward_gm' });
+        showToast('2x Boost activated for 5 minutes!');
+        updateUI();
     } else if (window.adsbygoogle?.loaded) {
         adBreak({
             type: 'reward',
