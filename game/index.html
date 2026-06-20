@@ -226,7 +226,8 @@
         }
         .business-card:hover { border-color: rgba(255,215,0,0.3); }
         .business-card.locked { opacity: 0.4; }
-        .business-icon { font-size: 2.2em; width: 50px; text-align: center; }
+        .business-icon { width: 50px; text-align: center; display: flex; align-items: center; justify-content: center; }
+        .business-icon svg { width: 36px; height: 36px; }
         .business-info { flex: 1; }
         .business-name { font-weight: bold; font-size: 0.95em; }
         .business-stats { font-size: 0.75em; color: #aaa; margin-top: 2px; }
@@ -277,7 +278,8 @@
             gap: 10px;
         }
         .upgrade-card.purchased { opacity: 0.4; border-color: #4caf50; }
-        .upgrade-icon { font-size: 1.5em; width: 35px; text-align: center; }
+        .upgrade-icon { width: 35px; text-align: center; display: flex; align-items: center; justify-content: center; }
+        .upgrade-icon svg { width: 28px; height: 28px; }
         .upgrade-info { flex: 1; }
         .upgrade-name { font-weight: bold; font-size: 0.85em; }
         .upgrade-desc { font-size: 0.7em; color: #aaa; }
@@ -511,32 +513,55 @@
 
 <script>
 // ========== GAME DATA ==========
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
+
+// SVG icon generator for businesses and upgrades
+const ICONS = {
+    lemonade: '<svg viewBox="0 0 40 40" width="24" height="24"><circle cx="20" cy="20" r="16" fill="#fbbf24"/><path d="M14 12h12l-2 16H16z" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><circle cx="20" cy="22" r="4" fill="#fbbf24"/><path d="M22 10l4-4" stroke="#16a34a" stroke-width="2"/><circle cx="26" cy="6" r="3" fill="#16a34a"/></svg>',
+    coffee: '<svg viewBox="0 0 40 40" width="24" height="24"><rect x="10" y="12" width="16" height="18" rx="2" fill="#92400e" stroke="#78350f" stroke-width="1.5"/><path d="M26 16h4a4 4 0 010 8h-4" fill="none" stroke="#78350f" stroke-width="1.5"/><path d="M14 8c2-4 4-4 6 0s4 4 6 0" fill="none" stroke="#9ca3af" stroke-width="1.5" opacity="0.6"/></svg>',
+    restaurant: '<svg viewBox="0 0 40 40" width="24" height="24"><circle cx="20" cy="22" r="14" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.5"/><circle cx="20" cy="22" r="10" fill="#f3f4f6"/><path d="M16 16v-6M20 16v-8M24 16v-6" stroke="#6b7280" stroke-width="1.5"/><ellipse cx="20" cy="22" rx="6" ry="4" fill="#ef4444" opacity="0.3"/></svg>',
+    techco: '<svg viewBox="0 0 40 40" width="24" height="24"><rect x="8" y="10" width="24" height="16" rx="2" fill="#1e40af" stroke="#1e3a8a" stroke-width="1.5"/><rect x="10" y="12" width="20" height="12" rx="1" fill="#60a5fa"/><rect x="14" y="28" width="12" height="2" rx="1" fill="#6b7280"/><path d="M15 18h10M15 22h6" stroke="#1e3a8a" stroke-width="1" opacity="0.5"/></svg>',
+    spacecorp: '<svg viewBox="0 0 40 40" width="24" height="24"><path d="M20 4l4 16h-8z" fill="#dc2626" stroke="#b91c1c" stroke-width="1"/><ellipse cx="20" cy="20" rx="4" ry="6" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1"/><circle cx="20" cy="18" r="2" fill="#60a5fa"/><path d="M14 20l-4 8h4M26 20l4 8h-4" fill="#f59e0b" stroke="#d97706" stroke-width="1"/><path d="M17 28l3 8 3-8" fill="#f97316" opacity="0.8"/></svg>',
+    bank: '<svg viewBox="0 0 40 40" width="24" height="24"><path d="M8 16l12-8 12 8z" fill="#059669" stroke="#047857" stroke-width="1.5"/><rect x="10" y="16" width="20" height="14" fill="#d1fae5" stroke="#047857" stroke-width="1"/><rect x="14" y="18" width="3" height="10" fill="#059669"/><rect x="19" y="18" width="3" height="10" fill="#059669"/><rect x="24" y="18" width="3" height="10" fill="#059669"/><text x="20" y="14" text-anchor="middle" font-size="6" fill="#fff" font-weight="bold">$</text></svg>',
+    media: '<svg viewBox="0 0 40 40" width="24" height="24"><rect x="6" y="10" width="28" height="18" rx="2" fill="#312e81" stroke="#1e1b4b" stroke-width="1.5"/><rect x="8" y="12" width="24" height="14" fill="#818cf8"/><polygon points="17,15 17,23 25,19" fill="#312e81"/><rect x="12" y="30" width="16" height="2" rx="1" fill="#6b7280"/></svg>',
+    galaxy: '<svg viewBox="0 0 40 40" width="24" height="24"><circle cx="20" cy="20" r="16" fill="#0f172a"/><ellipse cx="20" cy="20" rx="14" ry="5" fill="none" stroke="#a78bfa" stroke-width="1.5" transform="rotate(-20 20 20)"/><circle cx="20" cy="20" r="4" fill="#c084fc"/><circle cx="12" cy="14" r="1" fill="#fbbf24"/><circle cx="28" cy="12" r="1.5" fill="#fbbf24"/><circle cx="26" cy="28" r="1" fill="#fbbf24"/><circle cx="10" cy="26" r="0.8" fill="#fbbf24"/></svg>',
+    click: '<svg viewBox="0 0 40 40" width="24" height="24"><path d="M20 8c-6 0-10 4-10 10s4 10 10 10 10-4 10-10-4-10-10-10z" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/><text x="20" y="23" text-anchor="middle" font-size="12" fill="#92400e" font-weight="bold">$</text></svg>',
+    speed: '<svg viewBox="0 0 40 40" width="24" height="24"><polygon points="22,4 14,22 20,22 18,36 26,18 20,18" fill="#f59e0b" stroke="#d97706" stroke-width="1"/></svg>',
+    manager: '<svg viewBox="0 0 40 40" width="24" height="24"><circle cx="20" cy="14" r="6" fill="#e5e7eb"/><path d="M10 34c0-6 4-10 10-10s10 4 10 10" fill="#3b82f6"/><rect x="17" y="18" width="6" height="3" fill="#1e40af"/></svg>',
+};
+
+function getIcon(iconKey) {
+    // Map emoji to icon keys
+    const emojiMap = {'🍋':'lemonade','☕':'coffee','🍽️':'restaurant','💻':'techco','🚀':'spacecorp','🏦':'bank','📺':'media','🌌':'galaxy','👆':'click','✨':'click','⚡':'speed','🤖':'techco','👾':'spacecorp','⭐':'restaurant','💰':'click','🔓':'click'};
+    const key = emojiMap[iconKey] || iconKey;
+    return ICONS[key] || `<span style="font-size:1.2em">${iconKey}</span>`;
+}
+
 const BUSINESSES = [
-    { id: 'lemonade',   name: 'Lemonade Stand', icon: '🍋', baseCost: 10,      baseIncome: 1,       costMult: 1.15, time: 1000 },
-    { id: 'coffee',     name: 'Coffee Shop',     icon: '☕',       baseCost: 100,     baseIncome: 5,       costMult: 1.15, time: 2000 },
-    { id: 'restaurant', name: 'Restaurant',       icon: '🍽️', baseCost: 1000,    baseIncome: 25,      costMult: 1.15, time: 4000 },
-    { id: 'techco',     name: 'Tech Startup',     icon: '💻', baseCost: 12000,   baseIncome: 120,     costMult: 1.15, time: 8000 },
-    { id: 'spacecorp',  name: 'Space Corp',       icon: '🚀', baseCost: 150000,  baseIncome: 600,     costMult: 1.15, time: 15000 },
-    { id: 'bank',       name: 'Mega Bank',         icon: '🏦', baseCost: 2000000, baseIncome: 3000,    costMult: 1.15, time: 20000 },
-    { id: 'media',      name: 'Media Empire',      icon: '📺', baseCost: 30000000,baseIncome: 15000,   costMult: 1.15, time: 30000 },
-    { id: 'galaxy',     name: 'Galaxy Inc',        icon: '🌌', baseCost: 500000000,baseIncome: 80000,  costMult: 1.15, time: 45000 },
+    { id: 'lemonade',   name: 'Lemonade Stand', icon: 'lemonade', baseCost: 10,      baseIncome: 1,       costMult: 1.15, time: 1000 },
+    { id: 'coffee',     name: 'Coffee Shop',     icon: 'coffee',       baseCost: 100,     baseIncome: 5,       costMult: 1.15, time: 2000 },
+    { id: 'restaurant', name: 'Restaurant',       icon: 'restaurant', baseCost: 1000,    baseIncome: 25,      costMult: 1.15, time: 4000 },
+    { id: 'techco',     name: 'Tech Startup',     icon: 'techco', baseCost: 12000,   baseIncome: 120,     costMult: 1.15, time: 8000 },
+    { id: 'spacecorp',  name: 'Space Corp',       icon: 'spacecorp', baseCost: 150000,  baseIncome: 600,     costMult: 1.15, time: 15000 },
+    { id: 'bank',       name: 'Mega Bank',         icon: 'bank', baseCost: 2000000, baseIncome: 3000,    costMult: 1.15, time: 20000 },
+    { id: 'media',      name: 'Media Empire',      icon: 'media', baseCost: 30000000,baseIncome: 15000,   costMult: 1.15, time: 30000 },
+    { id: 'galaxy',     name: 'Galaxy Inc',        icon: 'galaxy', baseCost: 500000000,baseIncome: 80000,  costMult: 1.15, time: 45000 },
 ];
 
 const UPGRADES = [
-    { id: 'click1',    name: 'Better Fingers',     icon: '👆', desc: '2x click power',         cost: 100,     type: 'click', mult: 2 },
-    { id: 'click2',    name: 'Golden Touch',        icon: '✨',       desc: '3x click power',         cost: 5000,    type: 'click', mult: 3 },
-    { id: 'biz1',      name: 'Fresh Lemons',        icon: '🍋', desc: '2x Lemonade income',     cost: 500,     type: 'business', target: 'lemonade', mult: 2 },
-    { id: 'biz2',      name: 'Premium Beans',       icon: '☕',       desc: '2x Coffee income',       cost: 5000,    type: 'business', target: 'coffee', mult: 2 },
-    { id: 'biz3',      name: 'Michelin Star',        icon: '⭐',       desc: '2x Restaurant income',   cost: 50000,   type: 'business', target: 'restaurant', mult: 2 },
-    { id: 'biz4',      name: 'AI Integration',      icon: '🤖', desc: '2x Tech Startup income', cost: 500000,  type: 'business', target: 'techco', mult: 2 },
-    { id: 'biz5',      name: 'Warp Drive',          icon: '👾', desc: '2x Space Corp income',   cost: 5000000, type: 'business', target: 'spacecorp', mult: 2 },
-    { id: 'speed1',    name: 'Efficiency Boost',    icon: '⚡',       desc: 'All businesses 20% faster', cost: 10000, type: 'speed', mult: 0.8 },
+    { id: 'click1',    name: 'Better Fingers',     icon: 'click', desc: '2x click power',         cost: 100,     type: 'click', mult: 2 },
+    { id: 'click2',    name: 'Golden Touch',        icon: 'click',       desc: '3x click power',         cost: 5000,    type: 'click', mult: 3 },
+    { id: 'biz1',      name: 'Fresh Lemons',        icon: 'lemonade', desc: '2x Lemonade income',     cost: 500,     type: 'business', target: 'lemonade', mult: 2 },
+    { id: 'biz2',      name: 'Premium Beans',       icon: 'coffee',       desc: '2x Coffee income',       cost: 5000,    type: 'business', target: 'coffee', mult: 2 },
+    { id: 'biz3',      name: 'Michelin Star',        icon: 'restaurant',       desc: '2x Restaurant income',   cost: 50000,   type: 'business', target: 'restaurant', mult: 2 },
+    { id: 'biz4',      name: 'AI Integration',      icon: 'techco', desc: '2x Tech Startup income', cost: 500000,  type: 'business', target: 'techco', mult: 2 },
+    { id: 'biz5',      name: 'Warp Drive',          icon: 'spacecorp', desc: '2x Space Corp income',   cost: 5000000, type: 'business', target: 'spacecorp', mult: 2 },
+    { id: 'speed1',    name: 'Efficiency Boost',    icon: 'speed',       desc: 'All businesses 20% faster', cost: 10000, type: 'speed', mult: 0.8 },
     { id: 'speed2',    name: 'Quantum Efficiency',  icon: '🔬', desc: 'All businesses 30% faster', cost: 200000, type: 'speed', mult: 0.7 },
     { id: 'click3',    name: 'Diamond Hands',       icon: '💎', desc: '5x click power',          cost: 100000, type: 'click', mult: 5 },
-    { id: 'biz6',      name: 'Vault Storage',       icon: '🏦', desc: '2x Mega Bank income',     cost: 10000000, type: 'business', target: 'bank', mult: 2 },
-    { id: 'biz7',      name: 'Viral Content',       icon: '📺', desc: '2x Media Empire income',  cost: 100000000, type: 'business', target: 'media', mult: 2 },
-    { id: 'biz8',      name: 'Dark Matter Engine',  icon: '🌌', desc: '2x Galaxy Inc income',    cost: 2000000000, type: 'business', target: 'galaxy', mult: 2 },
+    { id: 'biz6',      name: 'Vault Storage',       icon: 'bank', desc: '2x Mega Bank income',     cost: 10000000, type: 'business', target: 'bank', mult: 2 },
+    { id: 'biz7',      name: 'Viral Content',       icon: 'media', desc: '2x Media Empire income',  cost: 100000000, type: 'business', target: 'media', mult: 2 },
+    { id: 'biz8',      name: 'Dark Matter Engine',  icon: 'galaxy', desc: '2x Galaxy Inc income',    cost: 2000000000, type: 'business', target: 'galaxy', mult: 2 },
     { id: 'speed3',    name: 'Time Warp',           icon: '⏰', desc: 'All businesses 50% faster', cost: 5000000, type: 'speed', mult: 0.5 },
 ];
 
@@ -787,7 +812,7 @@ function buyBusiness(bizId) {
         if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
         playBuySound();
         analytics.track('buy', { biz: bizId, count: bs.owned, cost });
-        showToast(`Bought ${biz.icon} ${biz.name}! (${bs.owned} owned)`);
+        showToast(`Bought ${biz.name}! (${bs.owned} owned)`);
         updateUI();
     }
 }
@@ -801,7 +826,7 @@ function buyManager(bizId) {
         state.coins -= cost;
         state.managers[bizId] = true;
         analytics.track('manager', { biz: bizId, cost });
-        showToast(`Hired manager for ${biz.icon} ${biz.name}!`);
+        showToast(`Hired manager for ${biz.name}!`);
         updateUI();
     }
 }
@@ -814,7 +839,7 @@ function buyUpgrade(upgradeId) {
         state.coins -= upgrade.cost;
         state.upgrades[upgradeId] = true;
         analytics.track('upgrade', { id: upgradeId, cost: upgrade.cost });
-        showToast(`Purchased ${upgrade.icon} ${upgrade.name}!`);
+        showToast(`Purchased ${upgrade.name}!`);
         updateUI();
     }
 }
@@ -1021,7 +1046,7 @@ function collectBusiness(bizId) {
         // Show "Watch ad to double?" modal for larger collections
         if (income >= 50) {
             showModal(
-                `${biz.icon} Collected!`,
+                `${biz.name} Collected!`,
                 `<div class="modal-reward">+${formatNumber(income)} coins</div>`,
                 [
                     { text: 'OK', action: () => updateUI() },
@@ -1089,7 +1114,7 @@ function renderBusinesses() {
         const unlocked = i === 0 || prevBs.owned > 0;
 
         html += `<div class="business-card ${unlocked ? '' : 'locked'}">
-            <div class="business-icon">${b.icon}</div>
+            <div class="business-icon">${getIcon(b.icon)}</div>
             <div class="business-info">
                 <div class="business-name">${b.name}</div>
                 <div class="business-stats">
@@ -1097,7 +1122,7 @@ function renderBusinesses() {
                 </div>
                 <div class="business-owned">
                     ${bs.owned > 0 ? `Owned: ${bs.owned}` : ''}
-                    ${hasManager ? ' 👔 Manager' : (bs.owned > 0 ? ` | <a href="#" data-action="manager" data-id="${b.id}" style="color:#a78bfa;text-decoration:none">👔 Hire (${formatNumber(managerCost)})</a>` : '')}
+                    ${hasManager ? ` ${getIcon("manager")} Manager` : (bs.owned > 0 ? ` | <a href="#" data-action="manager" data-id="${b.id}" style="color:#a78bfa;text-decoration:none">${getIcon("manager")} Hire (${formatNumber(managerCost)})</a>` : '')}
                 </div>
                 ${bs.owned > 0 ? `<div class="progress-bar"><div class="progress-fill" data-progress="${b.id}" style="width:${progress}%"></div></div>` : ''}
             </div>
@@ -1121,7 +1146,7 @@ function renderUpgrades() {
         const purchased = state.upgrades[u.id];
         const canBuy = state.coins >= u.cost && !purchased;
         html += `<div class="upgrade-card ${purchased ? 'purchased' : ''}">
-            <div class="upgrade-icon">${u.icon}</div>
+            <div class="upgrade-icon">${getIcon(u.icon)}</div>
             <div class="upgrade-info">
                 <div class="upgrade-name">${u.name}</div>
                 <div class="upgrade-desc">${u.desc}</div>
@@ -1272,7 +1297,7 @@ document.querySelector('.game-container').addEventListener('touchend', handleGam
 
 function shareGame() {
     const totalBiz = Object.values(state.businesses).reduce((a,b) => a + b.owned, 0);
-    const text = `🪙 My Coin Empire: ${formatNumber(state.totalCoins)} coins earned, ${totalBiz} businesses, prestige level ${state.prestigeLevel}! Can you beat me? 🏆`;
+    const text = `My Coin Empire: ${formatNumber(state.totalCoins)} coins earned, ${totalBiz} businesses, prestige level ${state.prestigeLevel}! Can you beat me?`;
     const url = 'https://pinisolomon.github.io/coin-empire/';
 
     analytics.track('share');
