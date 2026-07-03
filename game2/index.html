@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Merge numbers, trigger chain reactions, and chase high scores! Free browser puzzle game.">
+    <meta name="keywords" content="merge game, puzzle game, number game, 2048, chain reaction, free browser game">
+    <meta name="theme-color" content="#0f0f23">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Merge Chain - Number Puzzle">
+    <meta property="og:description" content="Merge numbers and trigger chain reactions! Free puzzle game.">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Merge Chain - Number Puzzle">
+    <meta name="twitter:description" content="Merge numbers and trigger chain reactions!">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>Merge Chain - Number Puzzle</title>
+
+    <!-- Google Ad Placement API -->
+    <script async
+        data-ad-frequency-hint="30s"
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6005470497153788"
+        crossorigin="anonymous">
+    </script>
+    <script>
+        window.adsbygoogle = window.adsbygoogle || [];
+        var adBreak = adConfig = function(o) { adsbygoogle.push(o); };
+    </script>
+
+    <!-- GameDistribution SDK -->
+    <script>
+        var GD_GAME_ID = localStorage.getItem('gd_game_id') || '';
+        if (GD_GAME_ID) {
+            window["GD_OPTIONS"] = {
+                "gameId": GD_GAME_ID,
+                "advertisementSettings": { "debug": false, "autoplay": false, "locale": "en" },
+                "onEvent": function(event) {
+                    if (event.name === "SDK_REWARDED_WATCH_COMPLETE" && window._gdRewardCallback) {
+                        window._gdRewardCallback();
+                        window._gdRewardCallback = null;
+                    }
+                }
+            };
+            (function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s); js.id = id;
+                js.src = 'https://html5.api.gamedistribution.com/main.min.js';
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'gamedistribution-jssdk'));
+        }
+    </script>
+
+    <!-- GameMonetize SDK -->
+    <script type="text/javascript">
+        var gmSdkLoaded = false;
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 1.3em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .scores {
+            display: flex;
+            gap: 12px;
+        }
+
+        .score-box {
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 4px 12px;
+        }
+
+        .score-label {
+            font-size: 0.6em;
+            text-transform: uppercase;
+            color: #888;
+            letter-spacing: 1px;
+        }
+
+        .score-value {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            padding: 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 6px;
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 1.4em;
+            transition: transform 0.15s ease, background 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            aspect-ratio: 1;
+        }
+
+        .cell:active { transform: scale(0.92); }
+
+        .cell.empty {
+            background: rgba(255,255,255,0.04);
+            border: 1px dashed rgba(255,255,255,0.08);
+        }
+
+        .cell.val-2 { background: #3b82f6; color: #fff; }
+        .cell.val-4 { background: #8b5cf6; color: #fff; }
+        .cell.val-8 { background: #ec4899; color: #fff; }
+        .cell.val-16 { background: #f59e0b; color: #fff; }
+        .cell.val-32 { background: #10b981; color: #fff; }
+        .cell.val-64 { background: #ef4444; color: #fff; }
+        .cell.val-128 { background: #06b6d4; color: #fff; }
+        .cell.val-256 { background: #f97316; color: #fff; }
+        .cell.val-512 { background: #14b8a6; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .cell.val-1024 { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; font-size: 1em; }
+        .cell.val-2048 { background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; font-size: 1em; }
+
+        .cell.merging {
+            animation: merge-pop 0.3s ease;
+        }
+
+        .cell.chain {
+            animation: chain-flash 0.4s ease;
+        }
+
+        @keyframes merge-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes chain-flash {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.8); }
+            50% { transform: scale(1.2); box-shadow: 0 0 20px 5px rgba(255,255,255,0.4); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .next-tile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .next-preview {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1em;
+        }
+
+        .combo-display {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #f59e0b;
+            min-height: 24px;
+            transition: opacity 0.3s;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-undo {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .btn-new {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .btn-reward {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            font-size: 0.8em;
+        }
+
+        /* Game Over overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .overlay.active { display: flex; }
+
+        .overlay h2 {
+            font-size: 2em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .overlay .final-score {
+            font-size: 1.4em;
+            color: #aaa;
+        }
+
+        .overlay .final-score span {
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.3em;
+        }
+
+        .overlay .btn {
+            width: 200px;
+            padding: 14px;
+            font-size: 1em;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            color: #888;
+            font-size: 0.85em;
+        }
+
+        .stats-row span { color: #fff; font-weight: 700; }
+
+        /* Sound toggle */
+        .sound-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 1.3em;
+            cursor: pointer;
+            opacity: 0.6;
+        }
+
+        .sound-btn:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+    <button class="sound-btn" id="sound-toggle">🔊</button>
+
+    <div class="header">
+        <div class="title">Merge Chain</div>
+        <div class="scores">
+            <div class="score-box">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="score-box">
+                <div class="score-label">Best</div>
+                <div class="score-value" id="best">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="controls">
+        <div class="next-tile">
+            Next: <div class="next-preview" id="next-preview">2</div>
+            <span style="margin-left:12px;font-size:0.8em;cursor:pointer;color:#667eea" onclick="showTutorial()">❓ How to play</span>
+        </div>
+        <div class="combo-display" id="combo-display"></div>
+        <div class="btn-row">
+            <button class="btn btn-undo" id="btn-undo" disabled>↩ Undo</button>
+            <button class="btn btn-reward" id="btn-reward">📺 +3 Undos</button>
+            <button class="btn btn-new" id="btn-new">New Game</button>
+        </div>
+    </div>
+
+    <!-- Game Over overlay -->
+    <div class="overlay" id="game-over">
+        <h2>Game Over!</h2>
+        <div class="final-score">Score: <span id="final-score">0</span></div>
+        <div class="stats-row">
+            <div>Chains: <span id="stat-chains">0</span></div>
+            <div>Best Chain: <span id="stat-best-chain">0</span></div>
+            <div>Highest Tile: <span id="stat-highest">0</span></div>
+        </div>
+        <button class="btn btn-new" onclick="newGame()">Play Again</button>
+        <button class="btn btn-reward" onclick="watchAdContinue()">📺 Continue (free!)</button>
+    </div>
+
+<script>
+// ========== GAME CONFIG ==========
+const GRID_SIZE = 5;
+const VERSION = '1.0.0';
+
+// ========== GAME STATE ==========
+let grid = [];
+let score = 0;
+let bestScore = parseInt(localStorage.getItem('mergeChainBest') || '0');
+let nextTile = 2;
+let undosLeft = 3;
+let totalChains = 0;
+let bestChain = 0;
+let highestTile = 0;
+let gamesPlayed = parseInt(localStorage.getItem('mergeChainGames') || '0');
+let prevState = null; // for undo
+let isAnimating = false;
+let comboTimeout = null;
+let soundEnabled = localStorage.getItem('mergeChainSound') !== 'off';
+let continued = false; // track if player already continued this game
+
+// ========== AUDIO ==========
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+}
+
+function playSound(freq, duration, type = 'sine') {
+    if (!soundEnabled) return;
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+}
+
+function playMergeSound(chainLevel) {
+    // Higher pitch for longer chains
+    const baseFreq = 400 + (chainLevel * 100);
+    playSound(baseFreq, 0.15, 'sine');
+    setTimeout(() => playSound(baseFreq * 1.25, 0.1, 'sine'), 50);
+}
+
+function playPlaceSound() {
+    playSound(300, 0.08, 'triangle');
+}
+
+function playGameOverSound() {
+    playSound(200, 0.3, 'sawtooth');
+    setTimeout(() => playSound(150, 0.4, 'sawtooth'), 150);
+}
+
+// ========== GRID OPERATIONS ==========
+
+function initGrid() {
+    grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
+}
+
+function getEmptyCells() {
+    const empty = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            if (grid[r][c] === 0) empty.push([r, c]);
+        }
+    }
+    return empty;
+}
+
+function generateNextTile() {
+    // Weighted: mostly 2s and 4s, occasionally 8
+    const roll = Math.random();
+    if (roll < 0.65) return 2;
+    if (roll < 0.90) return 4;
+    return 8;
+}
+
+function cloneGrid() {
+    return grid.map(row => [...row]);
+}
+
+// ========== MERGE LOGIC (CHAIN REACTION) ==========
+
+function findMerges() {
+    // Find all groups of 3+ adjacent same-value cells
+    const visited = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(false));
+    const groups = [];
+
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            if (grid[r][c] === 0 || visited[r][c]) continue;
+
+            // BFS to find connected group of same value
+            const val = grid[r][c];
+            const group = [];
+            const queue = [[r, c]];
+            visited[r][c] = true;
+
+            while (queue.length > 0) {
+                const [cr, cc] = queue.shift();
+                group.push([cr, cc]);
+
+                // Check 4 neighbors
+                const neighbors = [[cr-1,cc],[cr+1,cc],[cr,cc-1],[cr,cc+1]];
+                for (const [nr, nc] of neighbors) {
+                    if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE
+                        && !visited[nr][nc] && grid[nr][nc] === val) {
+                        visited[nr][nc] = true;
+                        queue.push([nr, nc]);
+                    }
+                }
+            }
+
+            if (group.length >= 3) {
+                groups.push({ val, cells: group });
+            }
+        }
+    }
+
+    return groups;
+}
+
+async function processMerges() {
+    let chainLevel = 0;
+
+    while (true) {
+        const groups = findMerges();
+        if (groups.length === 0) break;
+
+        chainLevel++;
+        totalChains++;
+        if (chainLevel > bestChain) bestChain = chainLevel;
+
+        for (const group of groups) {
+            const newVal = group.val * 2;
+            const points = newVal * group.cells.length * chainLevel;
+            score += points;
+            if (newVal > highestTile) highestTile = newVal;
+
+            // Clear all cells in group except one (which becomes the merged value)
+            const keepCell = group.cells[0];
+            for (const [r, c] of group.cells) {
+                grid[r][c] = 0;
+            }
+            grid[keepCell[0]][keepCell[1]] = newVal;
+
+            // Animate
+            playMergeSound(chainLevel);
+            renderGrid(keepCell, chainLevel > 1);
+
+            if (chainLevel > 1) {
+                showCombo(chainLevel);
+            }
+        }
+
+        // Wait for animation
+        await sleep(250);
+
+        // Gravity: tiles fall down to fill gaps
+        applyGravity();
+        renderGrid();
+        await sleep(150);
+    }
+
+    return chainLevel;
+}
+
+function applyGravity() {
+    for (let c = 0; c < GRID_SIZE; c++) {
+        // Collect non-zero values from bottom to top
+        const col = [];
+        for (let r = GRID_SIZE - 1; r >= 0; r--) {
+            if (grid[r][c] !== 0) col.push(grid[r][c]);
+        }
+        // Fill column from bottom
+        for (let r = GRID_SIZE - 1; r >= 0; r--) {
+            grid[r][c] = col.length > 0 ? col.shift() : 0;
+        }
+    }
+}
+
+// ========== PLACE TILE ==========
+
+async function placeTile(row, col) {
+    if (isAnimating || grid[row][col] !== 0) return;
+    isAnimating = true;
+
+    // Save state for undo
+    prevState = { grid: cloneGrid(), score, nextTile, undosLeft };
+
+    // Place the tile
+    grid[row][col] = nextTile;
+    playPlaceSound();
+    renderGrid([row, col]);
+
+    await sleep(100);
+
+    // Process chain reactions
+    await processMerges();
+
+    // Generate next tile
+    nextTile = generateNextTile();
+    updateNextPreview();
+    updateScore();
+
+    // Check game over
+    if (getEmptyCells().length === 0) {
+        // One final check — are there any possible merges with current board?
+        const possibleMerges = findMerges();
+        if (possibleMerges.length === 0) {
+            gameOver();
+        }
+    }
+
+    isAnimating = false;
+}
+
+// ========== GAME OVER ==========
+
+function gameOver() {
+    playGameOverSound();
+
+    if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem('mergeChainBest', bestScore.toString());
+    }
+
+    gamesPlayed++;
+    localStorage.setItem('mergeChainGames', gamesPlayed.toString());
+
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('stat-chains').textContent = totalChains;
+    document.getElementById('stat-best-chain').textContent = bestChain;
+    document.getElementById('stat-highest').textContent = highestTile;
+    document.getElementById('game-over').classList.add('active');
+
+    // Show interstitial ad at game over (natural break point)
+    showInterstitialAd();
+}
+
+// ========== UNDO ==========
+
+function undo() {
+    if (!prevState || undosLeft <= 0) return;
+    grid = prevState.grid;
+    score = prevState.score;
+    nextTile = prevState.nextTile;
+    undosLeft--;
+    prevState = null;
+    renderGrid();
+    updateScore();
+    updateUndoBtn();
+}
+
+// ========== NEW GAME ==========
+
+function newGame() {
+    document.getElementById('game-over').classList.remove('active');
+    initGrid();
+    score = 0;
+    totalChains = 0;
+    bestChain = 0;
+    highestTile = 0;
+    undosLeft = 3;
+    continued = false;
+    nextTile = generateNextTile();
+    prevState = null;
+    isAnimating = false;
+
+    // Place 3 random starting tiles
+    for (let i = 0; i < 3; i++) {
+        const empty = getEmptyCells();
+        if (empty.length > 0) {
+            const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+            grid[r][c] = generateNextTile();
+        }
+    }
+
+    renderGrid();
+    updateScore();
+    updateNextPreview();
+    updateUndoBtn();
+}
+
+// ========== UI RENDERING ==========
+
+function renderGrid(highlightCell, isChain) {
+    const gridEl = document.getElementById('grid');
+    gridEl.innerHTML = '';
+
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const cell = document.createElement('div');
+            const val = grid[r][c];
+            cell.className = 'cell' + (val === 0 ? ' empty' : ` val-${val}`);
+
+            if (highlightCell && highlightCell[0] === r && highlightCell[1] === c) {
+                cell.classList.add(isChain ? 'chain' : 'merging');
+            }
+
+            if (val > 0) {
+                cell.textContent = val;
+            }
+
+            cell.addEventListener('click', () => placeTile(r, c));
+            cell.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                placeTile(r, c);
+            });
+
+            gridEl.appendChild(cell);
+        }
+    }
+}
+
+function updateScore() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('best').textContent = bestScore;
+}
+
+function updateNextPreview() {
+    const el = document.getElementById('next-preview');
+    el.textContent = nextTile;
+    el.className = `next-preview val-${nextTile}`;
+}
+
+function updateUndoBtn() {
+    const btn = document.getElementById('btn-undo');
+    btn.textContent = `↩ Undo (${undosLeft})`;
+    btn.disabled = undosLeft <= 0 || !prevState;
+}
+
+function showCombo(level) {
+    const el = document.getElementById('combo-display');
+    const messages = ['', '', 'Double Chain! 🔥', 'Triple Chain! ⚡', 'MEGA CHAIN! 💥', 'INSANE! 🌟'];
+    el.textContent = messages[Math.min(level, messages.length - 1)] || `${level}x CHAIN! 🌟`;
+    el.style.opacity = '1';
+
+    clearTimeout(comboTimeout);
+    comboTimeout = setTimeout(() => { el.style.opacity = '0'; }, 2000);
+}
+
+// ========== AD INTEGRATION ==========
+
+function showInterstitialAd() {
+    if (typeof adBreak === 'function') {
+        adBreak({
+            type: 'next',
+            name: 'game-over',
+            beforeAd: () => {},
+            afterAd: () => {},
+            adBreakDone: () => {}
+        });
+    }
+}
+
+function watchAdForUndos() {
+    if (typeof adBreak === 'function') {
+        adBreak({
+            type: 'reward',
+            name: 'undo-reward',
+            beforeAd: () => {},
+            afterAd: () => {},
+            beforeReward: (showAdFn) => { showAdFn(); },
+            adDismissed: () => {},
+            adViewed: () => {
+                grantUndos();
+            },
+            adBreakDone: () => {}
+        });
+    } else {
+        // No ad SDK — simulate for testing
+        grantUndos();
+    }
+}
+
+function watchAdContinue() {
+    if (continued) return; // only one continue per game
+    if (typeof adBreak === 'function') {
+        adBreak({
+            type: 'reward',
+            name: 'continue-reward',
+            beforeAd: () => {},
+            afterAd: () => {},
+            beforeReward: (showAdFn) => { showAdFn(); },
+            adDismissed: () => {},
+            adViewed: () => {
+                continueGame();
+            },
+            adBreakDone: () => {}
+        });
+    } else {
+        continueGame();
+    }
+}
+
+function grantUndos() {
+    undosLeft += 3;
+    updateUndoBtn();
+}
+
+function continueGame() {
+    continued = true;
+    document.getElementById('game-over').classList.remove('active');
+    // Remove 5 random tiles to give space
+    const filled = [];
+    for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+            if (grid[r][c] !== 0) filled.push([r, c]);
+        }
+    }
+    // Sort by value (remove lowest first)
+    filled.sort((a, b) => grid[a[0]][a[1]] - grid[b[0]][b[1]]);
+    const toRemove = Math.min(5, filled.length);
+    for (let i = 0; i < toRemove; i++) {
+        const [r, c] = filled[i];
+        grid[r][c] = 0;
+    }
+    applyGravity();
+    renderGrid();
+    updateScore();
+}
+
+// ========== UTILITIES ==========
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ========== SOUND TOGGLE ==========
+
+document.getElementById('sound-toggle').addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem('mergeChainSound', soundEnabled ? 'on' : 'off');
+    document.getElementById('sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+});
+document.getElementById('sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+
+// ========== BUTTON HANDLERS ==========
+
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-new').addEventListener('click', newGame);
+document.getElementById('btn-reward').addEventListener('click', watchAdForUndos);
+
+// ========== SAVE BEST SCORE ==========
+
+window.addEventListener('beforeunload', () => {
+    if (score > bestScore) {
+        localStorage.setItem('mergeChainBest', score.toString());
+    }
+});
+
+// ========== TUTORIAL ==========
+
+function showTutorial() {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay active';
+    overlay.innerHTML = `
+        <h2 style="font-size:1.5em">How to Play</h2>
+        <div style="text-align:left;max-width:300px;line-height:1.6;font-size:0.9em;color:#ccc">
+            <p>👆 <strong>Tap an empty cell</strong> to place the next tile.</p>
+            <p>🔗 When <strong>3+ adjacent tiles</strong> of the same number touch, they <strong>merge</strong> into a higher number!</p>
+            <p>⬇️ After merges, tiles <strong>fall down</strong> with gravity — this can trigger <strong>chain reactions</strong>!</p>
+            <p>⚡ Longer chains = <strong>bigger score multipliers</strong>.</p>
+            <p>↩️ Use <strong>Undo</strong> to take back a move (limited uses).</p>
+            <p>🎯 <strong>Game over</strong> when the grid is full with no possible merges.</p>
+        </div>
+        <button class="btn btn-new" style="width:200px;margin-top:16px" onclick="this.parentElement.remove()">Got it!</button>
+    `;
+    document.body.appendChild(overlay);
+}
+
+// Show tutorial on first visit
+if (!localStorage.getItem('mergeChainPlayed')) {
+    setTimeout(showTutorial, 500);
+    localStorage.setItem('mergeChainPlayed', '1');
+}
+
+// ========== START GAME ==========
+newGame();
+</script>
+<div style="text-align:center;padding:10px;font-size:0.7em;color:#555">
+    <a href="https://pinisolomon.github.io/coin-empire/" style="color:#667eea;text-decoration:none;font-weight:bold">🪙 Play Coin Empire!</a> ·
+    <a href="privacy.html" style="color:#666;text-decoration:none">Privacy</a> · v1.0.0
+</div>
+</body>
+</html>
