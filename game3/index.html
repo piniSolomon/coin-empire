@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Dodge falling obstacles and survive as long as you can! Free browser arcade game.">
+    <meta name="keywords" content="dodge game, survival game, arcade game, free browser game, reflex game">
+    <meta name="theme-color" content="#0a0a1a">
+
+    <meta property="og:title" content="Dodge Storm - Survival Arcade">
+    <meta property="og:description" content="Dodge falling obstacles and survive! Free arcade game.">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Dodge Storm - Survival Arcade">
+    <meta name="twitter:description" content="Dodge falling obstacles and survive!">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>Dodge Storm - Survival Arcade</title>
+
+    <!-- Google Ad Placement API -->
+    <script async data-ad-frequency-hint="30s"
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6005470497153788"
+        crossorigin="anonymous"></script>
+    <script>
+        window.adsbygoogle = window.adsbygoogle || [];
+        var adBreak = adConfig = function(o) { adsbygoogle.push(o); };
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a1a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .header {
+            width: 100%;
+            max-width: 420px;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .title {
+            font-size: 1.1em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ef4444, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hud {
+            display: flex;
+            gap: 12px;
+            font-size: 0.9em;
+        }
+
+        .hud-item { text-align: center; }
+        .hud-label { font-size: 0.6em; text-transform: uppercase; color: #666; letter-spacing: 1px; }
+        .hud-value { font-weight: 800; font-size: 1.1em; }
+
+        canvas {
+            display: block;
+            border-radius: 12px;
+            background: #0f0f2a;
+            border: 1px solid rgba(255,255,255,0.05);
+            max-width: 420px;
+            width: 100%;
+            touch-action: none;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.88);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+        .overlay.active { display: flex; }
+
+        .overlay h2 {
+            font-size: 1.8em;
+            background: linear-gradient(135deg, #ef4444, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .overlay .stat { color: #888; font-size: 0.9em; }
+        .overlay .stat span { color: #fff; font-weight: 700; }
+
+        .btn {
+            padding: 14px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        .btn-play {
+            background: linear-gradient(135deg, #ef4444, #f59e0b);
+            color: #fff;
+        }
+        .btn-reward {
+            background: linear-gradient(135deg, #9333ea, #7c3aed);
+            color: #fff;
+            font-size: 0.85em;
+            padding: 10px 30px;
+        }
+
+        .sound-btn {
+            position: fixed;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            opacity: 0.6;
+            z-index: 20;
+        }
+        .sound-btn:hover { opacity: 1; }
+
+        .tutorial {
+            text-align: center;
+            max-width: 300px;
+            line-height: 1.5;
+            color: #aaa;
+            font-size: 0.85em;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 8px;
+            font-size: 0.65em;
+            color: #555;
+        }
+        .footer a { color: #666; text-decoration: none; }
+        .footer a.game-link { color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <button class="sound-btn" id="sound-toggle">🔊</button>
+
+    <div class="header">
+        <div class="title">Dodge Storm</div>
+        <div class="hud">
+            <div class="hud-item">
+                <div class="hud-label">Score</div>
+                <div class="hud-value" id="score">0</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Best</div>
+                <div class="hud-value" id="best">0</div>
+            </div>
+            <div class="hud-item">
+                <div class="hud-label">Level</div>
+                <div class="hud-value" id="level">1</div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="game" width="400" height="600"></canvas>
+
+    <!-- Start screen -->
+    <div class="overlay active" id="start-screen">
+        <h2>Dodge Storm</h2>
+        <div class="tutorial">
+            <p>👆 <strong>Drag or swipe</strong> to move your ship.</p>
+            <p>⚡ Dodge the falling obstacles!</p>
+            <p>⭐ Collect stars for bonus points.</p>
+            <p>🛡️ Grab shields for protection.</p>
+        </div>
+        <button class="btn btn-play" onclick="startGame()">Play!</button>
+    </div>
+
+    <!-- Game Over screen -->
+    <div class="overlay" id="game-over">
+        <h2>Game Over!</h2>
+        <div class="stat">Score: <span id="final-score">0</span></div>
+        <div class="stat">Time: <span id="final-time">0s</span></div>
+        <div class="stat">Level: <span id="final-level">1</span></div>
+        <button class="btn btn-play" onclick="startGame()">Play Again</button>
+        <button class="btn btn-reward" id="btn-continue" onclick="watchAdContinue()">📺 Continue (Free!)</button>
+    </div>
+
+    <div class="footer">
+        <a href="https://pinisolomon.github.io/coin-empire/" class="game-link">🪙 Coin Empire</a> ·
+        <a href="https://pinisolomon.github.io/merge-chain/" class="game-link">🔗 Merge Chain</a> ·
+        <a href="privacy.html">Privacy</a> · v1.0.0
+    </div>
+
+<script>
+// ========== GAME CONFIG ==========
+const VERSION = '1.0.0';
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// Responsive sizing
+function resizeCanvas() {
+    const maxW = 420;
+    const w = Math.min(window.innerWidth, maxW);
+    const h = Math.min(window.innerHeight - 100, w * 1.5);
+    canvas.width = w;
+    canvas.height = h;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ========== GAME STATE ==========
+let gameRunning = false;
+let score = 0;
+let bestScore = parseInt(localStorage.getItem('dodgeStormBest') || '0');
+let level = 1;
+let gameTime = 0;
+let continued = false;
+let shieldActive = false;
+let shieldEnd = 0;
+let gamesPlayed = parseInt(localStorage.getItem('dodgeStormGames') || '0');
+let soundEnabled = localStorage.getItem('dodgeStormSound') !== 'off';
+
+// Player
+let player = { x: 0, y: 0, w: 30, h: 30 };
+
+// Objects
+let obstacles = [];
+let stars = [];
+let powerups = [];
+let particles = [];
+
+// Difficulty
+let spawnRate = 0.02;
+let obstacleSpeed = 2;
+let starRate = 0.005;
+let powerupRate = 0.001;
+
+// ========== AUDIO ==========
+let audioCtx = null;
+
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+}
+
+function playSound(freq, dur, type = 'sine') {
+    if (!soundEnabled) return;
+    try {
+        const c = getAudioCtx();
+        const o = c.createOscillator();
+        const g = c.createGain();
+        o.type = type;
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.12, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+        o.connect(g); g.connect(c.destination);
+        o.start(); o.stop(c.currentTime + dur);
+    } catch(e) {}
+}
+
+function playHitSound() { playSound(150, 0.3, 'sawtooth'); }
+function playStarSound() { playSound(800, 0.1); setTimeout(() => playSound(1000, 0.1), 60); }
+function playShieldSound() { playSound(400, 0.15); setTimeout(() => playSound(600, 0.15), 80); }
+
+// ========== PLAYER MOVEMENT ==========
+let touchX = null;
+let mouseDown = false;
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+});
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+});
+
+canvas.addEventListener('touchend', () => { touchX = null; });
+
+canvas.addEventListener('mousedown', (e) => {
+    mouseDown = true;
+    touchX = e.clientX - canvas.getBoundingClientRect().left;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (mouseDown) touchX = e.clientX - canvas.getBoundingClientRect().left;
+});
+
+canvas.addEventListener('mouseup', () => { mouseDown = false; touchX = null; });
+canvas.addEventListener('mouseleave', () => { mouseDown = false; touchX = null; });
+
+// Keyboard support
+let keys = {};
+document.addEventListener('keydown', (e) => { keys[e.key] = true; });
+document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+// ========== SPAWN FUNCTIONS ==========
+
+function spawnObstacle() {
+    const w = 20 + Math.random() * 40;
+    const types = ['rect', 'circle'];
+    const colors = ['#ef4444', '#f59e0b', '#ec4899', '#8b5cf6'];
+    obstacles.push({
+        x: Math.random() * (canvas.width - w),
+        y: -w,
+        w: w,
+        h: w,
+        speed: obstacleSpeed * (0.7 + Math.random() * 0.6),
+        type: types[Math.floor(Math.random() * types.length)],
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: 0,
+        rotSpeed: (Math.random() - 0.5) * 0.1,
+    });
+}
+
+function spawnStar() {
+    stars.push({
+        x: Math.random() * (canvas.width - 20),
+        y: -20,
+        speed: 1.5 + Math.random(),
+        pulse: 0,
+    });
+}
+
+function spawnPowerup() {
+    powerups.push({
+        x: Math.random() * (canvas.width - 24),
+        y: -24,
+        speed: 1.2 + Math.random() * 0.5,
+        type: 'shield',
+    });
+}
+
+function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            life: 1,
+            color,
+            size: 2 + Math.random() * 3,
+        });
+    }
+}
+
+// ========== COLLISION ==========
+
+function collides(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// ========== GAME LOOP ==========
+
+function startGame() {
+    document.getElementById('start-screen').classList.remove('active');
+    document.getElementById('game-over').classList.remove('active');
+
+    player = { x: canvas.width / 2 - 15, y: canvas.height - 60, w: 30, h: 30 };
+    obstacles = [];
+    stars = [];
+    powerups = [];
+    particles = [];
+    score = 0;
+    level = 1;
+    gameTime = 0;
+    continued = false;
+    shieldActive = false;
+    spawnRate = 0.02;
+    obstacleSpeed = 2;
+    gameRunning = true;
+
+    updateHUD();
+    requestAnimationFrame(gameLoop);
+}
+
+let lastTime = 0;
+
+function gameLoop(timestamp) {
+    if (!gameRunning) return;
+
+    const dt = Math.min((timestamp - lastTime) / 16.67, 3); // normalize to ~60fps, cap at 3x
+    lastTime = timestamp;
+    gameTime += dt / 60;
+
+    update(dt);
+    draw();
+
+    requestAnimationFrame(gameLoop);
+}
+
+function update(dt) {
+    // Move player toward touch/mouse
+    if (touchX !== null) {
+        const target = touchX - player.w / 2;
+        player.x += (target - player.x) * 0.15 * dt;
+    }
+
+    // Keyboard movement
+    const kSpeed = 5 * dt;
+    if (keys['ArrowLeft'] || keys['a']) player.x -= kSpeed;
+    if (keys['ArrowRight'] || keys['d']) player.x += kSpeed;
+
+    // Clamp
+    player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+
+    // Shield timer
+    if (shieldActive && Date.now() > shieldEnd) shieldActive = false;
+
+    // Difficulty scaling
+    level = 1 + Math.floor(gameTime / 10);
+    spawnRate = 0.02 + level * 0.005;
+    obstacleSpeed = 2 + level * 0.3;
+
+    // Spawn
+    if (Math.random() < spawnRate * dt) spawnObstacle();
+    if (Math.random() < starRate * dt) spawnStar();
+    if (Math.random() < powerupRate * dt) spawnPowerup();
+
+    // Update obstacles
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        o.y += o.speed * dt;
+        o.rotation += o.rotSpeed * dt;
+
+        if (o.y > canvas.height + 50) {
+            obstacles.splice(i, 1);
+            score++;
+            continue;
+        }
+
+        if (collides(player, o)) {
+            if (shieldActive) {
+                shieldActive = false;
+                obstacles.splice(i, 1);
+                spawnParticles(o.x + o.w/2, o.y + o.h/2, '#3b82f6', 10);
+                playShieldSound();
+            } else {
+                gameOver();
+                return;
+            }
+        }
+    }
+
+    // Update stars
+    for (let i = stars.length - 1; i >= 0; i--) {
+        const s = stars[i];
+        s.y += s.speed * dt;
+        s.pulse += 0.1 * dt;
+
+        if (s.y > canvas.height + 20) { stars.splice(i, 1); continue; }
+
+        if (collides(player, { x: s.x, y: s.y, w: 16, h: 16 })) {
+            score += 5;
+            spawnParticles(s.x + 8, s.y + 8, '#ffd700', 8);
+            playStarSound();
+            stars.splice(i, 1);
+        }
+    }
+
+    // Update powerups
+    for (let i = powerups.length - 1; i >= 0; i--) {
+        const p = powerups[i];
+        p.y += p.speed * dt;
+
+        if (p.y > canvas.height + 24) { powerups.splice(i, 1); continue; }
+
+        if (collides(player, { x: p.x, y: p.y, w: 24, h: 24 })) {
+            shieldActive = true;
+            shieldEnd = Date.now() + 5000;
+            spawnParticles(p.x + 12, p.y + 12, '#3b82f6', 12);
+            playShieldSound();
+            powerups.splice(i, 1);
+        }
+    }
+
+    // Update particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= 0.03 * dt;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    updateHUD();
+}
+
+// ========== DRAWING ==========
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background stars
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    for (let i = 0; i < 30; i++) {
+        const sx = ((i * 137 + gameTime * 20) % canvas.width);
+        const sy = ((i * 97 + gameTime * 10) % canvas.height);
+        ctx.fillRect(sx, sy, 1, 1);
+    }
+
+    // Draw obstacles
+    for (const o of obstacles) {
+        ctx.save();
+        ctx.translate(o.x + o.w/2, o.y + o.h/2);
+        ctx.rotate(o.rotation);
+        ctx.fillStyle = o.color;
+        if (o.type === 'circle') {
+            ctx.beginPath();
+            ctx.arc(0, 0, o.w/2, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.fillRect(-o.w/2, -o.h/2, o.w, o.h);
+        }
+        ctx.restore();
+    }
+
+    // Draw stars
+    for (const s of stars) {
+        const size = 8 + Math.sin(s.pulse) * 2;
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        drawStar(ctx, s.x + 8, s.y + 8, 5, size, size/2);
+        ctx.fill();
+    }
+
+    // Draw powerups
+    for (const p of powerups) {
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(p.x + 12, p.y + 12, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🛡', p.x + 12, p.y + 17);
+    }
+
+    // Draw particles
+    for (const p of particles) {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+
+    // Draw player
+    ctx.fillStyle = shieldActive ? '#3b82f6' : '#10b981';
+    ctx.beginPath();
+    // Triangle ship
+    ctx.moveTo(player.x + player.w / 2, player.y);
+    ctx.lineTo(player.x, player.y + player.h);
+    ctx.lineTo(player.x + player.w, player.y + player.h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Shield glow
+    if (shieldActive) {
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(player.x + player.w/2, player.y + player.h/2, player.w, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    // Engine glow
+    ctx.fillStyle = `rgba(${shieldActive ? '59,130,246' : '16,185,129'}, ${0.3 + Math.random() * 0.3})`;
+    ctx.beginPath();
+    ctx.arc(player.x + player.w/2, player.y + player.h + 4, 5 + Math.random() * 3, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawStar(ctx, cx, cy, spikes, outerR, innerR) {
+    let rot = Math.PI / 2 * 3;
+    const step = Math.PI / spikes;
+    ctx.moveTo(cx, cy - outerR);
+    for (let i = 0; i < spikes; i++) {
+        ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+        rot += step;
+        ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+        rot += step;
+    }
+    ctx.lineTo(cx, cy - outerR);
+}
+
+// ========== HUD ==========
+
+function updateHUD() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('best').textContent = bestScore;
+    document.getElementById('level').textContent = level;
+}
+
+// ========== GAME OVER ==========
+
+function gameOver() {
+    gameRunning = false;
+    playHitSound();
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+    spawnParticles(player.x + player.w/2, player.y + player.h/2, '#10b981', 20);
+    draw(); // final frame with explosion
+
+    if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem('dodgeStormBest', bestScore.toString());
+    }
+
+    gamesPlayed++;
+    localStorage.setItem('dodgeStormGames', gamesPlayed.toString());
+
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('final-time').textContent = Math.floor(gameTime) + 's';
+    document.getElementById('final-level').textContent = level;
+    document.getElementById('btn-continue').style.display = continued ? 'none' : 'block';
+    document.getElementById('game-over').classList.add('active');
+
+    // Interstitial ad (natural break)
+    if (typeof adBreak === 'function') {
+        adBreak({ type: 'next', name: 'game-over', beforeAd: function(){}, afterAd: function(){}, adBreakDone: function(){} });
+    }
+}
+
+// ========== CONTINUE (REWARDED AD) ==========
+
+function watchAdContinue() {
+    if (continued) return;
+    if (typeof adBreak === 'function') {
+        adBreak({
+            type: 'reward', name: 'continue',
+            beforeReward: (show) => show(),
+            adViewed: () => doContinue(),
+            adDismissed: () => {},
+            adBreakDone: () => {}
+        });
+    } else {
+        doContinue(); // no ad SDK = free continue (testing)
+    }
+}
+
+function doContinue() {
+    continued = true;
+    document.getElementById('game-over').classList.remove('active');
+    shieldActive = true;
+    shieldEnd = Date.now() + 3000;
+    obstacles = [];
+    gameRunning = true;
+    requestAnimationFrame(gameLoop);
+}
+
+// ========== SOUND TOGGLE ==========
+document.getElementById('sound-toggle').addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem('dodgeStormSound', soundEnabled ? 'on' : 'off');
+    document.getElementById('sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+});
+document.getElementById('sound-toggle').textContent = soundEnabled ? '🔊' : '🔇';
+
+// ========== BEST SCORE DISPLAY ==========
+document.getElementById('best').textContent = bestScore;
+</script>
+</body>
+</html>

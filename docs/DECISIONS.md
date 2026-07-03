@@ -125,3 +125,26 @@
 **Name idea**: "Merge Chain" or "Number Cascade"
 
 **Reversibility**: Game #2 is independent. Can pivot the concept without affecting Coin Empire.
+
+### DEC-007: Game #3 Genre — Endless Dodge/Survival (2026-07-03)
+**Context**: Need a third game to further diversify. Portfolio has idle (Coin Empire) and puzzle (Merge Chain). Need something action-oriented for a different player type.
+**Decision**: Build a **dodge/survival game** — avoid falling obstacles, collect power-ups, survive as long as possible.
+
+**Alternatives considered**:
+1. **Endless runner** (side-scrolling) — Classic but requires sprite art and animation
+2. **Dodge/survival** (top-down) — Minimal art (shapes/colors), pure reflexes, very short sessions
+3. **Rhythm game** — Unique but needs music licensing/creation
+4. **Tower defense** — Too complex for quick MVP
+
+**Rationale**:
+- **Shortest sessions** of all our games — perfect for "one more try" addiction loop
+- **Most ad-friendly**: game over every 30-60 seconds = interstitial ad opportunity after each round
+- **Minimal art**: circles, squares, colors — no sprites needed
+- **Mobile-first**: swipe/tilt controls work naturally
+- **Different player type**: action gamers vs idle fans vs puzzle lovers
+- **Viral potential**: score-sharing, "can you beat my score" challenge
+- **Fastest to build**: simpler game logic than merge or idle
+
+**Name idea**: "Dodge Storm" or "Color Dodge"
+
+**Reversibility**: Independent game. No impact on others.
