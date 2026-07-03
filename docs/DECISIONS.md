@@ -98,3 +98,30 @@
 - Emoji art means we can ship MVP FAST
 
 **Reversibility**: Theme is cosmetic. Core mechanics (generators + upgrades + prestige) can be re-skinned to any theme.
+
+### DEC-006: Game #2 Genre — Puzzle/Merge Game (2026-07-03)
+**Context**: Need a second game genre to diversify the portfolio. Must be different from idle (Coin Empire) to attract different players and not cannibalize.
+**Decision**: Build a **number merge/2048-style puzzle game** with a fresh twist.
+
+**Alternatives considered**:
+1. **Endless runner** — Short sessions, viral potential, but hard to differentiate
+2. **Word game** — High retention, but heavy content/dictionary requirements
+3. **Tower defense** — Complex to balance, longer dev time
+4. **Match-3** — Saturated market, hard to stand out without art
+5. **Number merge/2048-style** — High replay, satisfying mechanics, minimal art, proven ad model
+
+**Rationale**:
+- **Complements Coin Empire**: Idle = passive/long sessions. Puzzle = active/short sessions. Different player types.
+- **Minimal art needed**: Numbers/colors are the visuals — no sprite sheets required
+- **High replay value**: Score-chasing + "one more try" compulsion loop
+- **Natural ad breaks**: Between rounds (game over → ad → play again), rewarded ads for undos/continues
+- **Fast to build**: Core mechanic is a grid + swipe/merge logic. Single-file HTML like Coin Empire.
+- **Proven on web**: 2048 was a massive browser hit. Merge games dominate casual mobile.
+- **Portal-friendly**: Puzzle games do well on CrazyGames/GameDistribution
+- **SEO opportunity**: "merge game", "2048 game", "number puzzle" are high-volume searches
+
+**Twist to differentiate**: Instead of a plain 2048 clone, make it a "chain reaction merge" — tiles merge automatically when 3+ of same number are adjacent, creating cascade combos. More satisfying, more strategic, more "wow" moments.
+
+**Name idea**: "Merge Chain" or "Number Cascade"
+
+**Reversibility**: Game #2 is independent. Can pivot the concept without affecting Coin Empire.

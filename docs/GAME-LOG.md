@@ -83,3 +83,27 @@
 **Files changed**: game/index.html (GameMonetize SDK), docs/STATUS.md
 **Result**: AdSense ads.txt now live at domain root. This should unblock Google site approval.
 **Next**: Wait for AdSense approval, get itch.io login from owner, drive traffic via Reddit
+
+### 2026-07-03 15:00 UTC
+**Task**: #17 - Research next game genre + Build Game #2 MVP
+**What I did**: 
+- Updated CLAUDE.md with full architecture documentation and migrated all Telegram references to Discord
+- Decided on Game #2: "Merge Chain" — a chain-reaction number merge puzzle (differentiated from 2048 by adjacent-group merging with cascading combos)
+- Built complete MVP single-file game (`game2/index.html`) with:
+  - 5x5 grid, tap-to-place mechanic
+  - Chain reaction merges (3+ adjacent same-value tiles merge automatically)
+  - Gravity system (tiles fall after merges)
+  - Cascade combos with score multipliers and visual/audio feedback
+  - Undo system (3 free, rewarded ad for +3 more)
+  - Continue after game over via rewarded ad
+  - Interstitial ad at game over (natural break point)
+  - Sound effects (merge sounds pitch up with chain level)
+  - High score persistence in localStorage
+  - Full mobile touch support
+  - AdSense Ad Placement API integrated
+- Updated PLAN.md with portfolio vision
+- Updated TASKS.md with Game #2 pipeline
+- Reported progress on Discord
+**Files changed**: CLAUDE.md, game2/index.html, docs/PLAN.md, docs/TASKS.md, docs/DECISIONS.md, docs/STATUS.md, docs/GAME-LOG.md
+**Result**: Game #2 MVP is playable locally. Ready for deployment.
+**Next**: Create GitHub repo for Merge Chain, deploy to Pages, write E2E tests

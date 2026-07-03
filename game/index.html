@@ -455,12 +455,48 @@
         .modal-btn.secondary {
             background: linear-gradient(135deg, #9333ea, #7c3aed);
             color: white;
+
+        /* Click Frenzy challenge */
+        .frenzy-bar {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 550;
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            padding: 8px 16px;
+            text-align: center;
+            font-weight: bold;
+            color: #fff;
+            animation: frenzyPulse 0.5s ease-in-out infinite;
+        }
+        .frenzy-bar.active { display: block; }
+        .frenzy-timer {
+            display: inline-block;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 10px;
+            border-radius: 8px;
+            margin-left: 8px;
+            font-size: 1.1em;
+        }
+        .frenzy-clicks {
+            font-size: 0.85em;
+            margin-top: 2px;
+            color: rgba(255,255,255,0.9);
+        }
+        @keyframes frenzyPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(239,68,68,0.5); }
+            50% { box-shadow: 0 0 25px rgba(249,115,22,0.8); }
         }
     </style>
 </head>
 <body>
 
 <div class="game-container">
+    <!-- Click Frenzy bar -->
+    <div class="frenzy-bar" id="frenzy-bar">
+        ⚡ CLICK FRENZY! <span class="frenzy-timer" id="frenzy-timer">15</span>
+        <div class="frenzy-clicks" id="frenzy-clicks">Clicks: 0 | Bonus: x3</div>
+    </div>
     <!-- Header -->
     <div class="header">
         <h1>Coin Empire <span id="sound-toggle" data-action="toggle-sound" style="cursor:pointer;font-size:0.6em;vertical-align:middle">🔊</span></h1>
@@ -514,7 +550,7 @@
 
 <script>
 // ========== GAME DATA ==========
-const VERSION = '1.5.0';
+const VERSION = '1.6.0';
 
 // SVG icon generator for businesses and upgrades
 const ICONS = {
@@ -761,6 +797,9 @@ function handleClick(e) {
     state.coins += value;
     state.totalCoins += value;
     state.totalClicks++;
+
+    // Track frenzy clicks
+    if (typeof addFrenzyClick === 'function') addFrenzyClick();
 
     // Haptic feedback on mobile
     if (navigator.vibrate) navigator.vibrate(15);
@@ -1483,6 +1522,105 @@ function checkOfflineEarnings() {
         ]
     );
 }
+
+// ========== CLICK FRENZY CHALLENGE ==========
+
+let frenzyActive = false;
+let frenzyClicks = 0;
+let frenzyTimer = null;
+let frenzyInterval = null;
+let frenzyTimeLeft = 0;
+let lastFrenzyTime = parseInt(localStorage.getItem('coinEmpireLastFrenzy') || '0');
+
+function startFrenzy() {
+    if (frenzyActive) return;
+    frenzyActive = true;
+    frenzyClicks = 0;
+    frenzyTimeLeft = 15;
+    lastFrenzyTime = Date.now();
+    localStorage.setItem('coinEmpireLastFrenzy', lastFrenzyTime.toString());
+
+    const bar = document.getElementById('frenzy-bar');
+    bar.classList.add('active');
+    document.getElementById('frenzy-timer').textContent = frenzyTimeLeft;
+    document.getElementById('frenzy-clicks').textContent = 'Clicks: 0 | Bonus: x3';
+
+    playSound(800, 0.15, 'square');
+    setTimeout(() => playSound(1000, 0.15, 'square'), 100);
+    setTimeout(() => playSound(1200, 0.15, 'square'), 200);
+
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    analytics.track('frenzy_start');
+
+    frenzyInterval = setInterval(() => {
+        frenzyTimeLeft--;
+        document.getElementById('frenzy-timer').textContent = frenzyTimeLeft;
+        if (frenzyTimeLeft <= 5) {
+            playSound(600, 0.05, 'square');
+        }
+        if (frenzyTimeLeft <= 0) {
+            endFrenzy();
+        }
+    }, 1000);
+}
+
+function addFrenzyClick() {
+    if (!frenzyActive) return;
+    frenzyClicks++;
+    document.getElementById('frenzy-clicks').textContent = `Clicks: ${frenzyClicks} | Bonus: x3`;
+}
+
+function endFrenzy() {
+    frenzyActive = false;
+    clearInterval(frenzyInterval);
+    document.getElementById('frenzy-bar').classList.remove('active');
+
+    const bonus = Math.floor(frenzyClicks * getClickValue() * 2); // 2x extra on top of normal clicks
+    analytics.track('frenzy_end', { clicks: frenzyClicks, bonus });
+
+    if (frenzyClicks > 0) {
+        state.coins += bonus;
+        state.totalCoins += bonus;
+
+        playBuySound();
+        if (navigator.vibrate) navigator.vibrate([30, 50, 30, 50, 100]);
+
+        showModal(
+            '⚡ Frenzy Complete!',
+            `<div style="font-size:1.1em;margin:8px 0">You clicked <strong>${frenzyClicks}</strong> times!</div>
+             <div class="modal-reward">+${formatNumber(bonus)} bonus coins</div>`,
+            [
+                { text: 'Nice!', action: () => {
+                    updateUI(); saveGame();
+                    // Interstitial ad after frenzy (natural break)
+                    if (typeof adBreak === 'function') {
+                        adBreak({ type: 'next', name: 'frenzy-end', beforeAd: function(){}, afterAd: function(){}, adBreakDone: function(){} });
+                    }
+                } },
+            ]
+        );
+    }
+}
+
+// Trigger frenzy every 5-8 minutes of active play (randomized)
+function maybeStartFrenzy() {
+    if (frenzyActive) return;
+    const timeSinceLast = Date.now() - lastFrenzyTime;
+    const minInterval = 5 * 60 * 1000; // 5 minutes minimum
+    if (timeSinceLast < minInterval) return;
+
+    // After minimum interval, 5% chance per check (checked every 10s = ~avg 3.3 min extra wait)
+    if (Math.random() < 0.05) {
+        startFrenzy();
+    }
+}
+
+// Only start frenzies if player has at least 1 business (past tutorial phase)
+setInterval(() => {
+    if (Object.values(state.businesses).some(b => b.owned > 0)) {
+        maybeStartFrenzy();
+    }
+}, 10000);
 
 // ========== INIT ==========
 

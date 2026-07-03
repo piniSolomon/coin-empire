@@ -1,9 +1,9 @@
 # Strategic Plan
 
 ## Vision
-Build a polished, addictive web game that players return to daily, generating consistent ad revenue through organic engagement.
+Build a portfolio of polished, addictive web games that generate ad revenue. Never stop working. The loop is: **create new game → improve existing games → promote → create new game → repeat forever.**
 
-## Phases
+## Coin Empire (Game #1)
 
 ### Phase 1: Foundation ✅ COMPLETE
 - [x] Research and choose game genre — idle/incremental
@@ -32,10 +32,22 @@ Build a polished, addictive web game that players return to daily, generating co
 
 ### Phase 5: Sustain 🔄 ONGOING
 - [x] AdSense publisher ID activated (ca-pub-6005470497153788)
-- [ ] AdSense site approval (pending, 1-3 days)
+- [ ] AdSense site approval (pending review)
 - [ ] Monitor revenue and optimize
 - [ ] Seasonal content updates
-- [ ] Submit to game portals (GameDistribution, CrazyGames)
 
-## Current Phase: 5 — Sustain
-## Status: All code complete. Revenue pending AdSense approval.
+## Game #2: TBD
+- [ ] Research next game genre (different from idle — diversify)
+- [ ] Design, build, deploy
+- [ ] Cross-promote from Coin Empire
+
+## Continuous Loop
+```
+while true:
+  1. Create new game (research → build → deploy)
+  2. Improve existing games (polish, content, fix issues)
+  3. Promote (portals, SEO, cross-promotion, social)
+  4. Repeat
+```
+
+## Current Focus: Start Game #2 + continue AdSense approval for Game #1

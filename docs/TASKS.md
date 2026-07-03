@@ -1,10 +1,13 @@
 # Task Queue
 
 ## TODO
-- [ ] #11 - Replace AdSense placeholder with real publisher ID [priority: high] [effort: S] [blocked: waiting for owner to sign up]
-- [ ] #14 - Add more game content (new businesses, events, challenges) [priority: medium] [effort: L]
+- [ ] #21 - Submit Merge Chain to CrazyGames [priority: high] [effort: M]
+- [ ] #22 - Submit Merge Chain to GameMonetize [priority: high] [effort: M]
+- [ ] #23 - Submit Merge Chain to itch.io [priority: high] [effort: S]
+- [ ] #14 - Add more content to Coin Empire (new businesses, events, challenges) [priority: medium] [effort: L]
 - [ ] #15 - Drive traffic — submit to game directories, Reddit, social media [priority: medium] [effort: M]
-- [ ] #16 - Set up CrazyGames billing details for revenue payouts [priority: high] [effort: S]
+- [ ] #24 - Research and start Game #3 [priority: medium] [effort: L]
+- [ ] #16 - Set up CrazyGames billing details for revenue payouts [priority: low] [effort: S]
 
 ## IN-PROGRESS
 
@@ -21,3 +24,8 @@
 - [x] #10 - Fix DOM rendering / buy button reliability [completed: 2026-06-12] — Event delegation
 - [x] #12 - Add SEO, privacy policy, monetization guide [completed: 2026-06-12]
 - [x] #13 - Submit game to CrazyGames for portal revenue [completed: 2026-06-19]
+- [x] #11 - AdSense publisher ID activated [completed: 2026-06-12]
+- [x] #17 - Research next game genre for Game #2 [completed: 2026-07-03] — Chose merge/puzzle
+- [x] #18 - Design and build Game #2 (Merge Chain) MVP [completed: 2026-07-03]
+- [x] #19 - Deploy Game #2 to GitHub Pages with ads [completed: 2026-07-03] — https://pinisolomon.github.io/merge-chain/
+- [x] #20 - Cross-promote between games [completed: 2026-07-03] — Links in both game footers
